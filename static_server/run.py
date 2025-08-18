@@ -1,14 +1,32 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 app = FastAPI()
 
-# Serve symlinks too
+# --- CORS settings ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],   # or ["http://localhost:3000"] if you want to restrict
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Example API route ---
+@app.post("/search")
+async def search(request: Request):
+    body = await request.json()
+    # Do something with the request payload
+    return JSONResponse({"message": "Search received", "data": body})
+
+# --- Static files ---
 app.mount(
-    "/", 
-    StaticFiles(directory="/home/root", html=True, follow_symlink=True), 
-    name="static"
+    "/",
+    StaticFiles(directory="/home/root", html=True, follow_symlink=True),
+    name="static",
 )
 
 if __name__ == "__main__":

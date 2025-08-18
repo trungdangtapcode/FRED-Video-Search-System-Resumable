@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { SearchState, SearchType } from '@/types';
+import type { SearchState, SearchType, SearchResult } from '@/types';
 import { SearchService } from '@/services/searchService';
 import { DEFAULT_VALUES } from '@/constants';
 
@@ -42,12 +42,12 @@ export const useSearch = () => {
     searchType: SearchType,
     query: string,
     topK: number
-  ) => {
+  ): Promise<SearchResult[]> => {
     if (searchType !== 'text') {
       updateSearchState(searchType, {
         error: `${searchType.toUpperCase()} search is not available yet`,
       });
-      return;
+      return [];
     }
 
     updateSearchState(searchType, {
@@ -63,11 +63,13 @@ export const useSearch = () => {
         query,
         topK,
       });
+      return results;
     } catch (error) {
       updateSearchState(searchType, {
         isLoading: false,
         error: error instanceof Error ? error.message : 'Search failed',
       });
+      return [];
     }
   }, [updateSearchState]);
 

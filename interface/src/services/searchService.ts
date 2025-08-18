@@ -1,9 +1,13 @@
-import { SearchRequest, SearchResponse } from '@/types';
+import type { SearchRequest, SearchResponse } from '@/types';
 import { API_ENDPOINTS } from '@/constants';
 
 export class SearchService {
   static async searchByText(request: SearchRequest): Promise<SearchResponse> {
+    console.log('Sending search request:', request);
+    
     try {
+      console.log("Sending request to:", API_ENDPOINTS.SEARCH);
+      console.log('Request body:', JSON.stringify(request, null, 2));
       const response = await fetch(API_ENDPOINTS.SEARCH, {
         method: 'POST',
         headers: {
@@ -12,14 +16,24 @@ export class SearchService {
         body: JSON.stringify(request),
       });
 
+      console.log('Search API response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const data: SearchResponse = await response.json();
+      console.log('Search API response data:', data);
       return data;
     } catch (error) {
       console.error('Search API error:', error);
+      
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Cannot connect to search server. Please make sure the backend server is running on port 5000.');
+      }
+      
       throw new Error(error instanceof Error ? error.message : 'Failed to search');
     }
   }
