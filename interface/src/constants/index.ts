@@ -6,7 +6,7 @@ export const API_ENDPOINTS = {
 
 // Default values
 export const DEFAULT_VALUES = {
-  TOP_K: 3,
+  TOP_K: 100,
   MAX_TOP_K: 500,
 } as const;
 
