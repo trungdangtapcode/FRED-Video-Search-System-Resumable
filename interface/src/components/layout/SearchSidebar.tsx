@@ -33,7 +33,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
         <div className="mb-3">
           <h1 className="text-lg font-bold flex items-center gap-2">
             <Search className="h-4 w-4" />
-            Video Search
+            L4475
           </h1>
         </div>
 

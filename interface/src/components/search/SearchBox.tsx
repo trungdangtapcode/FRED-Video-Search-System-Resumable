@@ -74,7 +74,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                 value={localTopK}
                 onChange={(e) => setLocalTopK(Number(e.target.value))}
                 disabled={config.disabled || searchState.isLoading}
-                className="w-14 text-xs h-6"
+                className="w-20 text-sm h-8 px-2"
               />
             </div>
           </div>
