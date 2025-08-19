@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { SearchSidebar } from './SearchSidebar';
 import { TopBar } from './TopBar';
 import { ResultsGrid } from '@/components/search/ResultsGrid';
-import type { SearchResult, SearchType } from '@/types';
+import type { SearchResult, SearchType, DisplayMode } from '@/types';
 
 export const MainLayout: React.FC = () => {
   const [currentResults, setCurrentResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [framesPerRow, setFramesPerRow] = useState(10);
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('all');
 
   const handleSearchResults = (results: SearchResult[], searchType: SearchType) => {
     console.log('MainLayout: Received search results:', results.length, 'results for', searchType);
@@ -32,6 +33,8 @@ export const MainLayout: React.FC = () => {
           framesPerRow={framesPerRow}
           onFramesPerRowChange={setFramesPerRow}
           totalResults={currentResults.length}
+          displayMode={displayMode}
+          onDisplayModeChange={setDisplayMode}
         />
         
         {/* Results Grid */}
@@ -40,6 +43,7 @@ export const MainLayout: React.FC = () => {
             results={currentResults} 
             isLoading={isLoading}
             framesPerRow={framesPerRow}
+            displayMode={displayMode}
           />
         </div>
       </div>

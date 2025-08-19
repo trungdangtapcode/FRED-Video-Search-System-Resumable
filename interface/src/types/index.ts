@@ -24,3 +24,12 @@ export interface SearchState {
   results: SearchResult[];
   error: string | null;
 }
+
+// Display modes
+export type DisplayMode = 'all' | 'grouped';
+
+export interface GroupedResults {
+  videoPath: string;
+  videoName: string;
+  frames: SearchResult[];
+}

@@ -27,19 +27,18 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
   };
 
   return (
-    <div className="w-72 bg-background border-r border-border h-screen overflow-y-auto">
-      <div className="p-4">
+    <div className="w-64 bg-background border-r border-border h-screen overflow-y-auto">
+      <div className="p-2">
         {/* Header */}
-        <div className="mb-4">
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <Search className="h-5 w-5" />
+        <div className="mb-3">
+          <h1 className="text-lg font-bold flex items-center gap-2">
+            <Search className="h-4 w-4" />
             Video Search
           </h1>
         </div>
 
         {/* Search Boxes */}
-        <div className="space-y-4">
-          {Object.values(SEARCH_TYPES).map((config) => {
+        <div className="space-y-3">{Object.values(SEARCH_TYPES).map((config) => {
             const searchType = config.key;
             return (
               <SearchBox

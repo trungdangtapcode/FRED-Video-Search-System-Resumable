@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import type { SearchType, SearchState } from '@/types';
 import { SEARCH_TYPES, DEFAULT_VALUES } from '@/constants';
 import { Search, Loader2 } from 'lucide-react';
@@ -39,30 +40,30 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
 
   return (
     <Card className="w-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
+      <CardHeader className="pb-1 pt-2 px-2">
+        <CardTitle className="text-xs font-medium flex items-center gap-1">
           <Search className="h-3 w-3" />
           {config.label}
           {config.disabled && (
-            <span className="text-xs text-muted-foreground bg-muted px-1 py-0.5 rounded text-[10px]">
+            <span className="text-[10px] text-muted-foreground bg-muted px-1 py-0.5 rounded">
               Soon
             </span>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-2 px-2 pb-2">
         <form onSubmit={handleSubmit} className="space-y-2">
-          <div className="space-y-2">
-            <Input
-              type="text"
+          <div className="space-y-1">
+            <Textarea
               placeholder={config.placeholder}
               value={localQuery}
-              onChange={(e) => setLocalQuery(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalQuery(e.target.value)}
               disabled={config.disabled || searchState.isLoading}
-              className="w-full text-sm"
+              className="w-full text-sm min-h-[100px] resize-none text-xs leading-relaxed"
+              rows={5}
             />
             <div className="flex items-center gap-2">
-              <label htmlFor={`topk-${searchType}`} className="text-xs text-muted-foreground min-w-fit">
+              <label htmlFor={`topk-${searchType}`} className="text-[10px] text-muted-foreground min-w-fit">
                 Top K:
               </label>
               <Input
@@ -73,26 +74,26 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                 value={localTopK}
                 onChange={(e) => setLocalTopK(Number(e.target.value))}
                 disabled={config.disabled || searchState.isLoading}
-                className="w-16 text-sm"
+                className="w-14 text-xs h-6"
               />
             </div>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <Button
               type="submit"
               disabled={!localQuery.trim() || config.disabled || searchState.isLoading}
-              className="flex-1 h-8 text-xs"
+              className="flex-1 h-6 text-xs bg-blue-600 hover:bg-blue-700 text-white"
               size="sm"
             >
               {searchState.isLoading ? (
                 <>
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
                   Searching...
                 </>
               ) : (
                 <>
-                  <Search className="h-3 w-3" />
+                  <Search className="h-3 w-3 mr-1" />
                   Search
                 </>
               )}
@@ -102,7 +103,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
               variant="outline"
               onClick={handleClear}
               disabled={searchState.isLoading}
-              className="h-8 text-xs"
+              className="h-6 text-xs px-2 text-gray-700 border-gray-300 hover:bg-gray-50"
               size="sm"
             >
               Clear
@@ -111,13 +112,13 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
         </form>
 
         {searchState.error && (
-          <div className="text-xs text-destructive bg-destructive/10 p-2 rounded">
+          <div className="text-[10px] text-destructive bg-destructive/10 p-1 rounded">
             {searchState.error}
           </div>
         )}
         
         {searchState.results.length > 0 && (
-          <div className="text-xs text-muted-foreground">
+          <div className="text-[10px] text-muted-foreground">
             Found {searchState.results.length} results
           </div>
         )}
