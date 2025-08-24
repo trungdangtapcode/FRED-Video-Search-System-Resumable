@@ -18,7 +18,7 @@ with open(FRAMES_METADATA_PATH, 'r') as f:
 def retrieve_metadata_from_text(text: str, top_k: int = 5):
     indexs = retriever_client_instance.retrieve(
         texts=text,
-        model_name='clipcore',
+        model_name='siglip2',
         top_k=top_k
     )
     idx = indexs[0][0]

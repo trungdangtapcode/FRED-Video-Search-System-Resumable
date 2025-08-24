@@ -135,7 +135,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
             >
               <div className="aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer group relative">
                 <img
-                  src={SearchService.getImageUrl(result.frame_path)}
+                  src={SearchService.getImageUrl(result.compressed_frame_path)}
                   alt={`Frame ${index + 1}`}
                   className="w-full h-full object-cover"
                   loading="lazy"

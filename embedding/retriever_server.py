@@ -84,5 +84,5 @@ def hello_word():
 if __name__ == "__main__":
     pass
     # Optional preload:
-    load_index("clipcore", "/home/root/ephe/data/clipcore/clipcore.index")
+    load_index("siglip2", "/root/data/embedding/siglip2.index")
     app.run(host="0.0.0.0", port=5679, debug=True)

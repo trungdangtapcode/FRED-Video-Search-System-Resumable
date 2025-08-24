@@ -41,7 +41,7 @@ export class SearchService {
   static getImageUrl(framePath: string): string {
     // Convert the local path to the static server URL
     // Remove the /home/root prefix and add the static server base URL
-    const relativePath = framePath.replace('/home/root/', '');
+    const relativePath = framePath.replace('/root/', '');
     return `${API_ENDPOINTS.STATIC_SERVER}/${relativePath}`;
   }
 

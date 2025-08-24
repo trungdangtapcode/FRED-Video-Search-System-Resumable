@@ -10,6 +10,7 @@ export interface SearchResult {
   frame_path: string;
   timestamp: number;
   video_path: string;
+  compressed_frame_path: string;
 }
 
 export type SearchResponse = SearchResult[];

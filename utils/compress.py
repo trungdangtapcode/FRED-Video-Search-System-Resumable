@@ -1,6 +1,10 @@
 from PIL import Image
 
 def compress_image(input_path, output_path, quality=70, max_width=None, max_height=None):
+    # if output_path exists, skip
+    if Path(output_path).exists():
+        return
+    
     # Open image
     img = Image.open(input_path)
     
@@ -65,10 +69,33 @@ def compress_data_multiprocess(input_path, output_path, quality=70, max_width=No
     for p in processes:
         p.join()
         
-compress_data_multiprocess(
-    "/root/data/extracted_keyframes",
-    "/root/data/compressed_keyframes",
-    quality=10,
-    max_width=1280//4,
-    max_height=720//4
-)
+        
+if __name__ == "__main__":
+    # Example usage:
+    # compress_image(
+    #     "/root/data/extracted_keyframes/L21_V001/00000001.jpg",
+    #     "/root/data/compressed_keyframes/00000001.jpg",
+    #     quality=10,
+    #     max_width=1280//4,
+    #     max_height=720//4
+    # )
+
+    # Compress multiple video folders in a range
+    # compress_data(
+    #     "/root/data/extracted_keyframes",
+    #     "/root/data/compressed_keyframes",
+    #     pos_begin=0,
+    #     pos_end=10,  # Adjust as needed
+    #     quality=10,
+    #     max_width=1280//4,
+    #     max_height=720//4
+    # )
+
+    # Compress all video folders using multiprocessing
+    compress_data_multiprocess(
+        "/root/data/extracted_keyframes",
+        "/root/data/compressed_keyframes",
+        quality=10,
+        max_width=1280//4,
+        max_height=720//4
+    )

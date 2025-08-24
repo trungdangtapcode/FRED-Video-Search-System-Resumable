@@ -1,7 +1,7 @@
 // API endpoints
 export const API_ENDPOINTS = {
-  SEARCH: 'http://185.141.218.103:5000/retrieve',
-  STATIC_SERVER: 'http://185.141.218.103:8069',
+  SEARCH: 'http://38.29.145.80:5000/retrieve',
+  STATIC_SERVER: 'http://38.29.145.80:8069',
 } as const;
 
 // Default values
