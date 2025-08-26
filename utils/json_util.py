@@ -37,5 +37,18 @@ def concat_json_arrays(path, output_path=None):
     
     return combined
 
+def update_frame_metadata_compressed(json_path):
+    with open(json_path, "r") as f:
+        frame_metadata = json.load(f)
+        
+    for frame in frame_metadata[:]:
+        path = frame["frame_path"] #/root/data/extracted_keyframes/L21_V001/00000.png
+        # convert to /root/data/compressed_keyframes/L21_V001/00000.png
+        path = path.replace("extracted_keyframes", "compressed_keyframes")
+        frame['compressed_frame_path'] = path
+    json_path2 = frame_metadata
+    with open(json_path2, "w") as f:
+        json.dump(frame_metadata, f)
+
 
 concat_json_arrays("/root/data", "/root/data/frame_metadata.json")

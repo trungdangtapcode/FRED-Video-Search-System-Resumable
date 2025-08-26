@@ -77,7 +77,10 @@ class ImageEmbedder:
 
         if all_embeddings:
             all_embeddings = np.concatenate(all_embeddings, axis=0)
-            output_file = npy_dir / (Path(json_path).stem + "_embeddings.npy")
+            # Save embeddings with a timestamp to avoid overwriting from time right now
+            import datetime
+            datetime = datetime.datetime.now().strftime("%Y%m%d_%H%M%S") 
+            output_file = npy_dir / (Path(json_path).stem + f"_embeddings{datetime}.npy")
             np.save(output_file, all_embeddings)
             print(f"Saved {len(all_embeddings)} embeddings to {output_file}")
         else:

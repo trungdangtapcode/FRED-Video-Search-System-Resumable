@@ -8,7 +8,7 @@ Partion ephe is temporary and will be deleted anytime.
 
 npm run dev
 # Init
-ROOT DIR: /root
+ROOT DIR: `/root`
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 apt-get install nodejs -y
