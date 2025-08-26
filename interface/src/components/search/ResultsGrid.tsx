@@ -54,7 +54,7 @@ const GroupedResultsView: React.FC<{ results: SearchResult[]; framesPerRow: numb
                 r.video_path === result.video_path && r.frame_idx === result.frame_idx
               );
               return (
-                <div key={`${result.video_path}-${result.frame_idx}`}>
+                <div key={`${result.video_path}-${result.frame_idx}-${result.frame_idx}`}>
                   <FrameTooltip frameData={result} frameIndex={globalIndex}>
                     <div className="aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer">
                       <img

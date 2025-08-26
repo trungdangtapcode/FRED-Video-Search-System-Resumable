@@ -46,6 +46,7 @@ def query_elasticsearch():
         
         index_name = data.get('index_name')
         query_text = data.get('query')
+        top_k = int(data.get('top_k', 20))
         
         if not index_name or not query_text:
             return jsonify({
@@ -68,7 +69,7 @@ def query_elasticsearch():
                     }
                 }
             },
-            "size": 20,  # Return top 20 results
+            "size": top_k,  # Return top 20 results
             "sort": [
                 {"_score": {"order": "desc"}}
             ]

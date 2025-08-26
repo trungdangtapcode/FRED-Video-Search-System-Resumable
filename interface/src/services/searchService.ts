@@ -24,6 +24,10 @@ export class SearchService {
       }
 
       const data: SearchResponse = await response.json();
+      for (const item of data) {
+        item.fps = parseFloat(item.fps as unknown as string);
+        item.frame_idx = parseInt(item.frame_idx as unknown as string, 10);
+      }
       console.log('Search API response data:', data);
       return data;
     } catch (error) {
