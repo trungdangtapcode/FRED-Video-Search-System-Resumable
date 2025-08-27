@@ -3,6 +3,7 @@ import type { SearchResult, DisplayMode } from '@/types';
 import { SearchService } from '@/services/searchService';
 import { FrameTooltip } from '@/components/ui/frame-tooltip';
 import { groupResultsByVideo } from '@/utils/groupResults';
+import { openVideoPlayer } from '@/utils/videoUtils';
 import { Film } from 'lucide-react';
 
 interface ResultsGridProps {
@@ -56,7 +57,10 @@ const GroupedResultsView: React.FC<{ results: SearchResult[]; framesPerRow: numb
               return (
                 <div key={`${result.video_path}-${result.frame_idx}-${result.frame_idx}`}>
                   <FrameTooltip frameData={result} frameIndex={globalIndex}>
-                    <div className="aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer">
+                    <div 
+                      className="aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer"
+                      onClick={() => openVideoPlayer(result)}
+                    >
                       <img
                         src={SearchService.getImageUrl(result.frame_path)}
                         alt={`Frame ${frameIndex + 1} from ${group.videoName}`}
@@ -133,7 +137,10 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
               frameData={result}
               frameIndex={index}
             >
-              <div className="aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer group relative">
+              <div 
+                className="aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer group relative"
+                onClick={() => openVideoPlayer(result)}
+              >
                 <img
                   src={SearchService.getImageUrl(result.compressed_frame_path)}
                   alt={`Frame ${index + 1}`}
