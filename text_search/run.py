@@ -7,7 +7,7 @@ from init_elasticsearch import init_elasticsearch
 app = Flask(__name__)
 
 # Connect to Elasticsearch
-es = Elasticsearch("http://localhost:9200")
+es = Elasticsearch("http://localhost:9200", request_timeout=100)
 
 def initialize_all_indexes():
     """Initialize multiple Elasticsearch indexes."""
@@ -19,6 +19,11 @@ def initialize_all_indexes():
             "json_path": "/root/data/frame_asr.json",
             "index_name": "asr_index",
             "keyname": "asr"
+        },
+        {
+            "json_path": "/root/meilisearch/ocr/OCR/idx_ocr_correct.json",
+            "index_name": "ocr_index",
+            "keyname": "ocr"
         }
     ]
     

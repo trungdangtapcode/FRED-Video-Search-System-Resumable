@@ -33,7 +33,50 @@ def convert_numpy_to_faiss_index(npy_dir, index_dir, type='dot'):
     faiss.write_index(index, index_dir)
     print(f"FAISS index saved to: {index_dir}")
 
+def concat_numpy(npy_files, output_file):
+    """
+    Concatenates multiple .npy files into a single .npy file.
+
+    Parameters:
+        npy_files (list of str): List of paths to .npy files to concatenate.
+        output_file (str): Path where the concatenated .npy file will be saved.
+    """
+    arrays = []
+    for file in npy_files:
+        if not os.path.exists(file):
+            raise FileNotFoundError(f"Input .npy file not found: {file}")
+        arrays.append(np.load(file))
+    
+    concatenated_array = np.concatenate(arrays, axis=0)
+    np.save(output_file, concatenated_array)
+    print(f"Concatenated .npy file saved to: {output_file}")
+
+def normalize_embeddings(embeddings):
+    """
+    Normalizes embeddings to unit length.
+
+    Parameters:
+        embeddings (np.ndarray): Array of shape (N, D) where N is the number of embeddings and D is their dimension.
+
+    Returns:
+        np.ndarray: Normalized embeddings.
+    """
+    norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+    return embeddings / norms
+
 if __name__ == "__main__":
     # Example usage
-    convert_numpy_to_faiss_index("/root/data/embedding/frame_metadata_embeddings.npy",
-            "/root/data/embedding/siglip2.index")
+    # convert_numpy_to_faiss_index("/root/data/embedding/dinov3/frames_metadata_embeddings_20250827_120247.npy",
+    #         "/root/data/embedding/dinov3_batch1.index")
+    # concat_numpy([
+    #     "/root/data/embedding/frame_metadata_embeddings2.npy",
+    #     "/root/data/embedding/frame_metadata_btc_embeddings20250827_141708.npy"
+    # ], "/root/data/embedding/siglip2_batch1.npy")
+    # convert_numpy_to_faiss_index("/root/data/embedding/siglip2_batch1.npy",
+    #         "/root/data/embedding/siglip2_batch1.index", type='dot')
+    # convert_numpy_to_faiss_index("/root/data/embedding/siglip2_batch1_pseudo.npy",
+    #                 "/root/data/embedding/siglip2_batch1_pseudo.index", type='dot')
+    normalized_embeddings = normalize_embeddings(np.load("/root/data/embedding/dinov3/dinov3_batch1.npy"))
+    np.save("/root/data/embedding/dinov3/dinov3_batch1_normalized.npy", normalized_embeddings)
+    convert_numpy_to_faiss_index("/root/data/embedding/dinov3/dinov3_batch1_normalized.npy",
+                    "/root/data/embedding/dinov3_batch1_normalized.index", type='dot')

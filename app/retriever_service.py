@@ -52,9 +52,10 @@ def retrieve_metadata_from_asr(text: str, top_k: int = 5, return_scores: bool = 
 def retrieve_metadata_from_ocr(text: str, top_k: int = 5, return_scores: bool = False, need_pop = True):
     indexs = text_search_instance.search(
         query_text = text, 
-        index_name='asr_index', 
+        index_name='ocr_index', 
         top_k=top_k
     )
+    print("OCR search ok!")
     
     if need_pop:
         for x in indexs:
@@ -77,7 +78,7 @@ def hybrid_search(query, ocr, asr, top_k=5, normalize_scores=True):
             results.extend([(item, (score - min_score) / (max_score - min_score), idx  if max_score > min_score else 0) for item, score, idx in result])
     # print('len results after query:', len(results))
     if ocr:
-        result = retrieve_metadata_from_asr(ocr, top_k=top_k*30, return_scores=True)
+        result = retrieve_metadata_from_ocr(ocr, top_k=top_k*30, return_scores=True)
         if normalize_scores:
             max_score = max(score for _, score, _  in result) if result else 1
             min_score = min(score for _, score, _ in result) if result else 0

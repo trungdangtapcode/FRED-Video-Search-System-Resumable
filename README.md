@@ -19,6 +19,12 @@ apt-get install nodejs -y
 conda env create -f environments/faiss.yml
 conda env create -f environments/openclip.yml
 conda env create -f environments/static.yml
+conda env create -f environments/elasticsearch.yml
+```
+
+```
+docker run -d -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" 0370c61f362b  --name elasticsearch_hcmc
+docker start elasticsearch_hcmc
 ```
 
 # CMD
@@ -48,4 +54,11 @@ python3 embedding/retriever_server.py
 cd hcmc
 conda activate openclip
 python3 run.py
+```
+
+## Text seach
+```
+cd hcmc/text_search
+conda activate elasticsearch
+python run.py
 ```
