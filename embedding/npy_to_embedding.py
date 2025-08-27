@@ -33,5 +33,7 @@ def convert_numpy_to_faiss_index(npy_dir, index_dir, type='dot'):
     faiss.write_index(index, index_dir)
     print(f"FAISS index saved to: {index_dir}")
 
-convert_numpy_to_faiss_index("/root/data/embedding/frame_metadata_embeddings.npy",
-        "/root/data/embedding/siglip2.index")
+if __name__ == "__main__":
+    # Example usage
+    convert_numpy_to_faiss_index("/root/data/embedding/frame_metadata_embeddings.npy",
+            "/root/data/embedding/siglip2.index")

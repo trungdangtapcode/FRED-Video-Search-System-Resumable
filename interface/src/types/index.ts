@@ -1,6 +1,15 @@
 // Search related types
 export interface SearchRequest {
+  query?: string;
+  ocr?: string;
+  asr?: string;
+  top_k: number;
+}
+
+export interface UnifiedSearchRequest {
   query: string;
+  ocr: string;
+  asr: string;
   top_k: number;
 }
 

@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify
 from app.retriever_service import (
     retrieve_metadata_from_text,
-    retrieve_metadata_from_asr
+    retrieve_metadata_from_ocr,
+    retrieve_metadata_from_asr,
+    hybrid_search
 )
 
 main = Blueprint('main', __name__)
@@ -35,15 +37,28 @@ def retrieve():
                 "error": "At least one of 'query', 'ocr', or 'asr' parameters must be provided and not empty"
             }), 400
         
-        # For now, using query for backward compatibility
-        # You may need to update retrieve_metadata_from_text to handle ocr and asr
+        # For now, using the first available text field
+        # You may need to update retrieve_metadata_from_text to handle multiple text sources
+        if query and not ocr and not asr:
+            search_text = query
+            results = retrieve_metadata_from_text(search_text, top_k)
+        elif ocr and not query and not asr:
+            search_text = ocr
+            results = retrieve_metadata_from_ocr(search_text, top_k)
+        elif asr and not query and not ocr:
+            search_text = asr
+            results = retrieve_metadata_from_asr(search_text, top_k)
+        else:
+            results = hybrid_search(query, ocr, asr, top_k, normalize_scores=True)
         
-        # search_text = query or ocr or asr
-        # results = retrieve_metadata_from_text(search_text, top_k)
-        results = retrieve_metadata_from_asr(query, top_k)
         return jsonify(results)
 
     except ValueError as e:
         return jsonify({"error": f"Invalid top_k value: {str(e)}"}), 400
     except Exception as e:
+        print(f"Error in /retrieve: {e}")
+        # SHOW THE FUCKING TRACEBACK PLEASE
+        import traceback
+        traceback.print_exc()
+        
         return jsonify({"error": str(e)}), 500

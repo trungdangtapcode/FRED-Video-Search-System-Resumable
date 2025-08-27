@@ -69,6 +69,7 @@ dependencies:
   - zipp=3.23.0=pyhd8ed1ab_0
   - zlib=1.2.13=h5eee18b_1
   - pip:
+      - accelerate==1.10.1
       - blinker==1.9.0
       - certifi==2025.8.3
       - charset-normalizer==3.4.3
@@ -115,7 +116,7 @@ dependencies:
       - torch==2.8.0
       - torchvision==0.23.0
       - tqdm==4.67.1
-      - transformers==4.55.4
+      - transformers==4.56.0.dev0
       - triton==3.4.0
       - urllib3==2.5.0
       - werkzeug==3.1.3
