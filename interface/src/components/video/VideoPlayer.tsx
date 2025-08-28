@@ -21,6 +21,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [isSpeedHeld, setIsSpeedHeld] = useState(false);
+  const [normalSpeed, setNormalSpeed] = useState(1);
+  const [speedKeyTimer, setSpeedKeyTimer] = useState<NodeJS.Timeout | null>(null);
+  const [isSpeedKeyPressed, setIsSpeedKeyPressed] = useState(false);
+  const [currentSpeedKey, setCurrentSpeedKey] = useState<string | null>(null);
 
   // Get video URL from static server
   const getVideoUrl = (videoPath: string) => {
@@ -52,10 +58,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Initialize video
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      return;
+    }
 
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
+      // Set initial playback rate
+      video.playbackRate = playbackRate;
+      
       // Jump to the timestamp from the search result
       if (videoData.timestamp) {
         video.currentTime = videoData.timestamp;
@@ -113,7 +124,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Play/Pause toggle
   const togglePlayPause = () => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      return;
+    }
 
     if (isPlaying) {
       video.pause();
@@ -130,7 +143,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Seek to position
   const handleSeek = (value: number[]) => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      return;
+    }
 
     const newTime = value[0];
     video.currentTime = newTime;
@@ -140,7 +155,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Volume control
   const handleVolumeChange = (value: number[]) => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      return;
+    }
 
     const newVolume = value[0];
     video.volume = newVolume;
@@ -151,7 +168,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Mute toggle
   const toggleMute = () => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      return;
+    }
 
     if (isMuted) {
       video.volume = volume > 0 ? volume : 0.5;
@@ -165,7 +184,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Jump to frame timestamp
   const jumpToFrameTime = () => {
     const video = videoRef.current;
-    if (!video || !videoData.timestamp) return;
+    if (!video || !videoData.timestamp) {
+      return;
+    }
 
     video.currentTime = videoData.timestamp;
     setCurrentTime(videoData.timestamp);
@@ -174,17 +195,37 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Fullscreen toggle
   const toggleFullscreen = () => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      return;
+    }
 
     if (!isFullscreen) {
       if (video.requestFullscreen) {
         video.requestFullscreen();
       }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
     }
+  };
+
+  // Playback speed control
+  const changePlaybackSpeed = (speed: number) => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+
+    video.playbackRate = speed;
+    setPlaybackRate(speed);
+  };
+
+  // Common playback speeds
+  const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+
+  const cyclePlaybackSpeed = () => {
+    const currentIndex = playbackSpeeds.indexOf(playbackRate);
+    const nextIndex = (currentIndex + 1) % playbackSpeeds.length;
+    changePlaybackSpeed(playbackSpeeds[nextIndex]);
   };
 
   // Handle fullscreen changes
@@ -199,35 +240,161 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
   }, []);
 
+  // "." and "," key hold detection for 2x speed
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ignore if typing in an input
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (event.code) {
+        case 'Comma': // "," key
+          console.log('Comma key pressed - starting 2x speed');
+          event.preventDefault();
+          if (!isSpeedKeyPressed || currentSpeedKey !== event.code) {
+            console.log('Starting speed boost timer');
+            setIsSpeedKeyPressed(true);
+            setCurrentSpeedKey(event.code);
+            // Immediately activate 2x speed (no timer)
+            setIsSpeedHeld(true);
+            setNormalSpeed(playbackRate);
+            changePlaybackSpeed(2);
+          }
+          break;
+        case 'Space':
+          event.preventDefault();
+          togglePlayPause();
+          break;
+        case 'ArrowLeft':
+          event.preventDefault();
+          handleSeek([Math.max(0, currentTime - 10)]);
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          handleSeek([Math.min(duration, currentTime + 10)]);
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          handleVolumeChange([Math.min(1, volume + 0.1)]);
+          break;
+        case 'ArrowDown':
+          event.preventDefault();
+          handleVolumeChange([Math.max(0, volume - 0.1)]);
+          break;
+        case 'KeyM':
+          event.preventDefault();
+          toggleMute();
+          break;
+        case 'KeyF':
+          event.preventDefault();
+          toggleFullscreen();
+          break;
+        case 'KeyS':
+          event.preventDefault();
+          cyclePlaybackSpeed();
+          break;
+        case 'Digit1':
+          event.preventDefault();
+          changePlaybackSpeed(1);
+          break;
+        case 'Digit2':
+          event.preventDefault();
+          changePlaybackSpeed(2);
+          break;
+        case 'Digit0':
+          event.preventDefault();
+          changePlaybackSpeed(0.5);
+          break;
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.code === 'Comma') {
+        console.log('Comma key released - stopping 2x speed');
+        event.preventDefault();
+        
+        // Only handle if this was the key being pressed
+        if (currentSpeedKey === event.code) {
+          setIsSpeedKeyPressed(false);
+          setCurrentSpeedKey(null);
+          
+          // Clear the hold timer
+          if (speedKeyTimer) {
+            clearTimeout(speedKeyTimer);
+            setSpeedKeyTimer(null);
+          }
+
+          if (isSpeedHeld) {
+            console.log('Restoring normal speed from', playbackRate, 'to', normalSpeed);
+            // If was held, restore normal speed
+            setIsSpeedHeld(false);
+            changePlaybackSpeed(normalSpeed);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      if (speedKeyTimer) {
+        clearTimeout(speedKeyTimer);
+      }
+    };
+  }, [isSpeedKeyPressed, isSpeedHeld, speedKeyTimer, currentSpeedKey, playbackRate, normalSpeed, currentTime, duration, volume]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (speedKeyTimer) {
+        clearTimeout(speedKeyTimer);
+      }
+    };
+  }, [speedKeyTimer]);
+
+  // 2x speed button handlers
+  const handleSpeedBoostMouseDown = () => {
+    setIsSpeedHeld(true);
+    setNormalSpeed(playbackRate);
+    changePlaybackSpeed(2);
+  };
+
+  const handleSpeedBoostMouseUp = () => {
+    setIsSpeedHeld(false);
+    changePlaybackSpeed(normalSpeed);
+  };
+
   return (
     <div className="w-full h-screen bg-black flex flex-col">
       {/* Header Info Bar */}
-      <div className="bg-gray-900 text-white p-3 flex items-center justify-between flex-shrink-0">
-        <div>
-          <h1 className="text-lg font-semibold">Video Player</h1>
-          <p className="text-sm text-gray-300">{videoData.video_path.split('/').pop()}</p>
+      <div className="bg-gray-900 text-white p-2 flex items-center justify-between flex-shrink-0">
+        <div className="text-xs text-gray-300">
+          {videoData.video_path.split('/').pop()}
         </div>
         <div className="text-center flex-1">
           {/* Real-time timestamp with milliseconds and frame index */}
-          <div className="text-4xl font-mono font-bold text-yellow-400 bg-gray-800 px-6 py-3 rounded-lg border-2 border-yellow-500 shadow-lg inline-block">
-            <span className="drop-shadow-lg">
-              {formatTimeWithMilliseconds(currentTime)} <span className="text-green-400">({calculateFrameIndex(currentTime, videoData.fps)})</span>
-            </span>
+          <div className="text-2xl font-mono font-bold text-yellow-400 bg-gray-800 px-4 py-1 rounded border border-yellow-500 inline-block">
+            {formatTimeWithMilliseconds(currentTime)} <span className="text-green-400">({calculateFrameIndex(currentTime, videoData.fps)})</span>
           </div>
-          <div className="text-xs text-gray-400 mt-1">
-            Current Time (Frame Index)
-          </div>
+          {/* Playback speed indicator */}
+          <span className="ml-3 text-sm font-semibold text-blue-400 bg-gray-800 px-2 py-1 rounded border border-blue-500">
+            {isSpeedHeld ? '2x (HOLD)' : `${playbackRate}x`}
+          </span>
         </div>
-        <div className="text-sm text-gray-300">
-          Start Frame: {formatTime(videoData.timestamp)}
+        <div className="text-xs text-gray-300">
+          FPS: {videoData.fps}
         </div>
       </div>
 
       {/* Video Element */}
-      <div className="flex-1 bg-black flex items-center justify-center min-h-0">
+      <div className="flex-1 bg-black flex items-center justify-center min-h-0 relative">
         <video
           ref={videoRef}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain cursor-pointer"
           controls={false}
           preload="metadata"
           onClick={togglePlayPause}
@@ -235,10 +402,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <source src={getVideoUrl(videoData.video_path)} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
+        
+        {/* Speed boost indicator */}
+        {isSpeedHeld && (
+          <div className="absolute top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-lg border-2 border-blue-400 shadow-lg animate-pulse">
+            2x SPEED
+          </div>
+        )}
       </div>
 
       {/* Controls */}
-      <div className="bg-gray-900 p-4 space-y-3 flex-shrink-0">
+      <div className="bg-gray-900 p-3 space-y-2 flex-shrink-0">
         {/* Progress Bar */}
         <div className="space-y-1">
           <Slider
@@ -275,9 +449,50 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
+
+            {/* Playback Speed Control */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cyclePlaybackSpeed}
+              title="Change playback speed"
+              className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 min-w-[50px]"
+            >
+              {playbackRate}x
+            </Button>
+
+            {/* 2x Speed Boost Button (Hold) */}
+            <Button
+              variant="outline"
+              size="sm"
+              onMouseDown={handleSpeedBoostMouseDown}
+              onMouseUp={handleSpeedBoostMouseUp}
+              onMouseLeave={handleSpeedBoostMouseUp}
+              onTouchStart={handleSpeedBoostMouseDown}
+              onTouchEnd={handleSpeedBoostMouseUp}
+              title="Hold for 2x speed"
+              className={`border-gray-600 text-white hover:bg-orange-600 min-w-[60px] ${
+                isSpeedHeld ? 'bg-orange-600 border-orange-400' : 'bg-gray-800'
+              }`}
+            >
+              {isSpeedHeld ? '2x!' : 'HOLD'}
+            </Button>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Playback Speed Selector */}
+            <select
+              value={playbackRate}
+              onChange={(e) => changePlaybackSpeed(Number(e.target.value))}
+              className="bg-gray-800 border border-gray-600 text-white text-xs rounded px-2 py-1 hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              {playbackSpeeds.map((speed) => (
+                <option key={speed} value={speed}>
+                  {speed}x
+                </option>
+              ))}
+            </select>
+            
             {/* Volume Control */}
             <div className="flex items-center gap-2">
               <Button
@@ -293,7 +508,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 max={1}
                 step={0.1}
                 onValueChange={handleVolumeChange}
-                className="w-20"
+                className="w-16"
               />
             </div>
 
@@ -305,16 +520,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             >
               <Maximize className="h-4 w-4" />
             </Button>
-          </div>
-        </div>
-
-        {/* Frame Info */}
-        <div className="text-xs text-gray-300 bg-gray-800 p-2 rounded">
-          <div className="grid grid-cols-4 gap-2">
-            <div>Frame: {videoData.frame_idx}</div>
-            <div>FPS: {videoData.fps}</div>
-            <div>Timestamp: {formatTime(videoData.timestamp)}</div>
-            <div>Video: {videoData.video_path.split('/').pop()}</div>
           </div>
         </div>
       </div>
