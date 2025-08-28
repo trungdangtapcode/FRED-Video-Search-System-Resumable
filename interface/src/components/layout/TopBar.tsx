@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { ZoomIn, ZoomOut, Grid3X3, Grid, Layers, RotateCcw } from 'lucide-react';
+import { ZoomIn, ZoomOut, Grid3X3, Grid, Layers, RotateCcw, FileText } from 'lucide-react';
 import type { DisplayMode } from '@/types';
 
 interface TopBarProps {
@@ -41,6 +41,18 @@ export const TopBar: React.FC<TopBarProps> = ({
         <span className="text-sm text-muted-foreground">
           {totalResults > 0 ? `${totalResults} results` : 'No results'}
         </span>
+        
+        {/* Submissions Link */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => window.open('/submissions', '_blank')}
+          className="h-8 px-3"
+          title="View Submitted Frames"
+        >
+          <FileText className="h-3 w-3 mr-1" />
+          Submissions
+        </Button>
         
         {/* Display Mode Toggle */}
         <div className="flex items-center gap-1 border rounded-md p-1">

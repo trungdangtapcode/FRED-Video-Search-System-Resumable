@@ -32,3 +32,6 @@ export const SEARCH_TYPES = {
     disabled: true,
   },
 } as const;
+
+
+export const ROOT_DIR = "/root"

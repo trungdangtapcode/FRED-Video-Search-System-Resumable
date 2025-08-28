@@ -134,6 +134,33 @@ class SubmissionService {
       throw error;
     }
   }
+
+  async deleteFrame(data: SubmissionData): Promise<{
+    success: boolean;
+    message: string;
+    deleted_count: number;
+    remaining_frames: number;
+  }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete frame');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Delete error:', error);
+      throw error;
+    }
+  }
 }
 
 export const submissionService = new SubmissionService();

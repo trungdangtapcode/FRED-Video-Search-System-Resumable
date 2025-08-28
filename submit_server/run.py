@@ -3,11 +3,15 @@
 Submit Server - Flask application for collecting user questions with video frames
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import json
 import os
+import cv2
+import tempfile
+import numpy as np
 from datetime import datetime
+from io import BytesIO
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -122,6 +126,61 @@ def get_questions():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/delete', methods=['POST'])
+def delete_frame():
+    """Delete a specific frame from submissions"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['question', 'video_path', 'timestamp', 'frame_idx']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        question = data['question'].strip()
+        video_path = data['video_path']
+        timestamp = float(data['timestamp'])
+        frame_idx = int(data['frame_idx'])
+        
+        # Load existing submissions
+        submissions = load_submissions()
+        
+        if question not in submissions:
+            return jsonify({'error': 'Question not found'}), 404
+        
+        # Find and remove the matching frame
+        original_count = len(submissions[question])
+        submissions[question] = [
+            frame for frame in submissions[question]
+            if not (frame['video_path'] == video_path and 
+                   frame['timestamp'] == timestamp and 
+                   frame['frame_idx'] == frame_idx)
+        ]
+        
+        # Remove question entirely if no frames left
+        if len(submissions[question]) == 0:
+            del submissions[question]
+        
+        # Check if anything was actually deleted
+        deleted_count = original_count - len(submissions.get(question, []))
+        if deleted_count == 0:
+            return jsonify({'error': 'Frame not found'}), 404
+        
+        # Save submissions
+        if save_submissions(submissions):
+            return jsonify({
+                'success': True,
+                'message': 'Frame deleted successfully',
+                'deleted_count': deleted_count,
+                'remaining_frames': len(submissions.get(question, []))
+            })
+        else:
+            return jsonify({'error': 'Failed to save changes'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
@@ -140,6 +199,57 @@ def get_stats():
             'total_frames': total_frames,
             'submissions_file': SUBMISSIONS_FILE
         })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/extract_frame', methods=['GET'])
+def extract_frame():
+    """Extract frame from video at specific timestamp"""
+    try:
+        video_path = request.args.get('video_path')
+        timestamp = request.args.get('timestamp')
+        
+        if not video_path or not timestamp:
+            return jsonify({'error': 'Missing video_path or timestamp parameter'}), 400
+        
+        try:
+            timestamp = float(timestamp)
+        except ValueError:
+            return jsonify({'error': 'Invalid timestamp format'}), 400
+        
+        # Check if video file exists
+        if not os.path.exists(video_path):
+            return jsonify({'error': 'Video file not found'}), 404
+        
+        # Open video file
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            return jsonify({'error': 'Could not open video file'}), 500
+        
+        # Set video position to the specified timestamp
+        cap.set(cv2.CAP_PROP_POS_MSEC, timestamp * 1000)  # Convert to milliseconds
+        
+        # Read the frame
+        ret, frame = cap.read()
+        cap.release()
+        
+        if not ret:
+            return jsonify({'error': 'Could not read frame at specified timestamp'}), 500
+        
+        # Convert frame to JPEG
+        _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        
+        # Create BytesIO object
+        img_io = BytesIO(buffer.tobytes())
+        img_io.seek(0)
+        
+        return send_file(
+            img_io,
+            mimetype='image/jpeg',
+            as_attachment=False,
+            download_name=f'frame_{timestamp}.jpg'
+        )
+        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

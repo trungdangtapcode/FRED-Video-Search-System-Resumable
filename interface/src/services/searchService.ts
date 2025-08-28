@@ -1,5 +1,5 @@
 import type { SearchRequest, SearchResponse, UnifiedSearchRequest } from '@/types';
-import { API_ENDPOINTS } from '@/constants';
+import { API_ENDPOINTS, ROOT_DIR } from '@/constants';
 
 export class SearchService {
   static async searchByText(request: SearchRequest): Promise<SearchResponse> {
@@ -85,7 +85,7 @@ export class SearchService {
   static getImageUrl(framePath: string): string {
     // Convert the local path to the static server URL
     // Remove the /home/root prefix and add the static server base URL
-    const relativePath = framePath.replace('/root/', '');
+    const relativePath = framePath.replace(ROOT_DIR, '');
     return `${API_ENDPOINTS.STATIC_SERVER}/${relativePath}`;
   }
 

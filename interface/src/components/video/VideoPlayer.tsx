@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Play, Pause, Volume2, VolumeX, RotateCcw, Maximize } from 'lucide-react';
-import { API_ENDPOINTS } from '@/constants';
+import { API_ENDPOINTS, ROOT_DIR } from '@/constants';
 import { SubmitFrameButton } from './SubmitFrameButton';
 import type { SearchResult } from '@/types';
 
@@ -32,7 +32,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Get video URL from static server
   const getVideoUrl = (videoPath: string) => {
     // Remove the /root prefix and add the static server base URL
-    const relativePath = videoPath.replace('/root/', '');
+    const relativePath = videoPath.replace(ROOT_DIR, '');
     return `${API_ENDPOINTS.STATIC_SERVER}/${relativePath}`;
   };
 

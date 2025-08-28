@@ -86,10 +86,10 @@ def hybrid_search(query, ocr, asr, top_k=5, normalize_scores=True):
         if normalize_scores:
             max_score = max(score for _, score, _  in result) if result else 1
             min_score = min(score for _, score, _ in result) if result else 0
-            print('huhu', result)
-            print("hehe:",results)
+            # print('huhu', result)
+            # print("hehe:",results)
             results.extend([(item, (score - min_score) / (max_score - min_score), idx  if max_score > min_score else 0) for item, score, idx in result])
-            print("hehe:",results)
+            # print("hehe:",results)
     # print('len results after ocr:', len(results))
     if asr:
         result = retrieve_metadata_from_asr(asr, top_k=top_k*50, return_scores=True)
