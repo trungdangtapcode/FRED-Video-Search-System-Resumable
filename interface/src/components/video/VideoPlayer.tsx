@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Play, Pause, Volume2, VolumeX, RotateCcw, Maximize } from 'lucide-react';
 import { API_ENDPOINTS } from '@/constants';
+import { SubmitFrameButton } from './SubmitFrameButton';
 import type { SearchResult } from '@/types';
 
 interface VideoPlayerProps {
@@ -220,7 +221,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   // Common playback speeds
-  const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+  const playbackSpeeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4, 5];
 
   const cyclePlaybackSpeed = () => {
     const currentIndex = playbackSpeeds.indexOf(playbackRate);
@@ -306,6 +307,28 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           event.preventDefault();
           changePlaybackSpeed(0.5);
           break;
+        case 'Digit3':
+          event.preventDefault();
+          changePlaybackSpeed(3);
+          break;
+        case 'Digit4':
+          event.preventDefault();
+          changePlaybackSpeed(4);
+          break;
+        case 'Digit5':
+          event.preventDefault();
+          changePlaybackSpeed(5);
+          break;
+      }
+
+      // Handle Ctrl+S for submit
+      if (event.ctrlKey && event.key === 's') {
+        event.preventDefault(); // Prevent browser's save dialog
+        // Trigger submit frame functionality
+        const submitButton = document.querySelector('[data-submit-frame-button]') as HTMLButtonElement;
+        if (submitButton) {
+          submitButton.click();
+        }
       }
     };
 
@@ -477,6 +500,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             >
               {isSpeedHeld ? '2x!' : 'HOLD'}
             </Button>
+
+            {/* Submit Frame Button */}
+            <SubmitFrameButton 
+              videoData={videoData}
+              currentTime={currentTime}
+              fps={videoData.fps}
+            />
           </div>
 
           <div className="flex items-center gap-2">

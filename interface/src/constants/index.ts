@@ -2,6 +2,7 @@
 export const API_ENDPOINTS = {
   SEARCH: 'http://38.29.145.80:5000/retrieve',
   STATIC_SERVER: 'http://38.29.145.80:8069',
+  SUBMIT_SERVER: 'http://38.29.145.80:5001',
 } as const;
 
 // Default values

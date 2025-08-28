@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { SearchResult, DisplayMode } from '@/types';
 import { SearchService } from '@/services/searchService';
 import { FrameTooltip } from '@/components/ui/frame-tooltip';
 import { groupResultsByVideo } from '@/utils/groupResults';
 import { openVideoPlayer } from '@/utils/videoUtils';
+import { submitFrame } from '@/services/submitService';
 import { Film } from 'lucide-react';
 
 interface ResultsGridProps {
@@ -14,9 +15,16 @@ interface ResultsGridProps {
 }
 
 // Component for grouped results view
-const GroupedResultsView: React.FC<{ results: SearchResult[]; framesPerRow: number }> = ({ 
+const GroupedResultsView: React.FC<{ 
+  results: SearchResult[]; 
+  framesPerRow: number;
+  isSubmitMode: boolean;
+  onFrameClick: (result: SearchResult) => void;
+}> = ({ 
   results, 
-  framesPerRow 
+  framesPerRow,
+  isSubmitMode,
+  onFrameClick
 }) => {
   const groupedResults = groupResultsByVideo(results);
 
@@ -34,7 +42,13 @@ const GroupedResultsView: React.FC<{ results: SearchResult[]; framesPerRow: numb
   };
 
   return (
-    <div className="h-full overflow-y-auto p-4 space-y-6">
+    <div className="h-full overflow-y-auto p-4 space-y-6 relative">
+      {/* Submit mode indicator */}
+      {isSubmitMode && (
+        <div className="absolute top-8 right-8 z-10 bg-yellow-500 text-black px-3 py-2 rounded-lg font-bold text-sm shadow-lg animate-pulse">
+          SUBMIT MODE - Click frame to submit
+        </div>
+      )}
       {groupedResults.map((group, groupIndex) => (
         <div key={group.videoPath} className="space-y-2">
           {/* Video Header */}
@@ -58,8 +72,10 @@ const GroupedResultsView: React.FC<{ results: SearchResult[]; framesPerRow: numb
                 <div key={`${result.video_path}-${result.frame_idx}-${result.frame_idx}`}>
                   <FrameTooltip frameData={result} frameIndex={globalIndex}>
                     <div 
-                      className="aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer"
-                      onClick={() => openVideoPlayer(result)}
+                      className={`aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer ${
+                        isSubmitMode ? 'ring-2 ring-yellow-400' : ''
+                      }`}
+                      onClick={() => onFrameClick(result)}
                     >
                       <img
                         src={SearchService.getImageUrl(result.frame_path)}
@@ -94,6 +110,68 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
   framesPerRow = 10,
   displayMode = 'all'
 }) => {
+  const [isSubmitMode, setIsSubmitMode] = useState(false);
+
+  // Handle "S" key for submit mode
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ignore if typing in an input
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (event.key.toLowerCase() === 's' && !event.ctrlKey && !event.metaKey) {
+        console.log('S key pressed - entering submit mode');
+        setIsSubmitMode(true);
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 's') {
+        console.log('S key released - exiting submit mode');
+        setIsSubmitMode(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  // Handle frame click (either submit or open video player)
+  const handleFrameClick = async (result: SearchResult) => {
+    console.log('Frame clicked. Submit mode:', isSubmitMode);
+    
+    if (isSubmitMode) {
+      console.log('In submit mode - showing prompt');
+      const question = prompt('Enter your question for this frame:');
+      
+      if (!question || question.trim() === '') {
+        console.log('User cancelled or entered empty question');
+        return; // User cancelled or entered empty question
+      }
+
+      try {
+        console.log('Submitting frame with question:', question);
+        await submitFrame(question.trim(), {
+          video_path: result.video_path,
+          timestamp: result.timestamp,
+          frame_idx: result.frame_idx,
+        });
+        alert('Frame submitted successfully!');
+      } catch (error) {
+        alert('Failed to submit frame. Please try again.');
+        console.error('Submit error:', error);
+      }
+    } else {
+      console.log('Not in submit mode - opening video player');
+      openVideoPlayer(result);
+    }
+  };
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -112,7 +190,14 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
 
   // Render based on display mode
   if (displayMode === 'grouped') {
-    return <GroupedResultsView results={results} framesPerRow={framesPerRow} />;
+    return (
+      <GroupedResultsView 
+        results={results} 
+        framesPerRow={framesPerRow} 
+        isSubmitMode={isSubmitMode}
+        onFrameClick={handleFrameClick}
+      />
+    );
   }
 
   // Create dynamic grid class based on framesPerRow
@@ -129,7 +214,13 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
   };
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto relative">
+      {/* Submit mode indicator */}
+      {isSubmitMode && (
+        <div className="absolute top-4 right-4 z-10 bg-yellow-500 text-black px-3 py-2 rounded-lg font-bold text-sm shadow-lg animate-pulse">
+          SUBMIT MODE - Click frame to submit
+        </div>
+      )}
       <div className={getGridClass()}>
         {results.map((result, index) => (
           <div key={`${result.video_path}-${result.frame_idx}`}>
@@ -138,8 +229,10 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
               frameIndex={index}
             >
               <div 
-                className="aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer group relative"
-                onClick={() => openVideoPlayer(result)}
+                className={`aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer group relative ${
+                  isSubmitMode ? 'ring-2 ring-yellow-400' : ''
+                }`}
+                onClick={() => handleFrameClick(result)}
               >
                 <img
                   src={SearchService.getImageUrl(result.compressed_frame_path)}

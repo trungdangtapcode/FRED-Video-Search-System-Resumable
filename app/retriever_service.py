@@ -5,11 +5,15 @@ from .config import FRAMES_METADATA_PATH, MODEL_NAME, DEVICE
 from embedding import image_embedder, text_embedder, retriever_client
 from text_search import text_search_client
 
-image_embedder_instance = image_embedder.ImageEmbedder(model_name=MODEL_NAME, device=DEVICE)
+# ima# The code snippet you provided is commented out, so it is not being executed. However, based on
+# the commented lines, it seems like the intention was to create instances of
+# `image_embedder.ImageEmbedder`, `text_embedder.TextEmbedder`, and
+# `retriever_client.RetrieverClient` classes.
+# ge_embedder_instance = image_embedder.ImageEmbedder(model_name=MODEL_NAME, device=DEVICE)
 
-text_embedder_instance = text_embedder.TextEmbedder(image_embedder_instance)
+# text_embedder_instance = text_embedder.TextEmbedder(image_embedder_instance)
 
-retriever_client_instance = retriever_client.RetrieverClient(text_embedder_instance)
+# retriever_client_instance = retriever_client.RetrieverClient(text_embedder_instance)
 
 text_search_instance = text_search_client.TextSearchClient()
 
