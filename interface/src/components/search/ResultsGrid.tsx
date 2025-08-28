@@ -155,12 +155,16 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
         return; // User cancelled or entered empty question
       }
 
+      // Optional answer prompt
+      const answer = prompt('Enter the answer (optional - press Cancel or leave empty to skip):');
+
       try {
-        console.log('Submitting frame with question:', question);
+        console.log('Submitting frame with question:', question, 'and answer:', answer);
         await submitFrame(question.trim(), {
           video_path: result.video_path,
           timestamp: result.timestamp,
           frame_idx: result.frame_idx,
+          answer: answer && answer.trim() ? answer.trim() : undefined,
         });
         alert('Frame submitted successfully!');
       } catch (error) {

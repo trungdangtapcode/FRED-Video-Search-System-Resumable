@@ -17,6 +17,7 @@ export const SubmitFrameButton: React.FC<SubmitFrameButtonProps> = ({
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     type: 'success' | 'error' | null;
@@ -40,6 +41,7 @@ export const SubmitFrameButton: React.FC<SubmitFrameButtonProps> = ({
     try {
       const submissionData: SubmissionData = {
         question: question.trim(),
+        answer: answer.trim() || undefined, // Only include if not empty
         video_path: videoData.video_path,
         timestamp: currentTime,
         frame_idx: frameIndex
@@ -55,6 +57,7 @@ export const SubmitFrameButton: React.FC<SubmitFrameButtonProps> = ({
       // Clear the form after successful submission
       setTimeout(() => {
         setQuestion('');
+        setAnswer('');
         setIsDialogOpen(false);
         setSubmitStatus({ type: null, message: '' });
       }, 2000);
@@ -72,6 +75,7 @@ export const SubmitFrameButton: React.FC<SubmitFrameButtonProps> = ({
   const handleCancel = () => {
     setIsDialogOpen(false);
     setQuestion('');
+    setAnswer('');
     setSubmitStatus({ type: null, message: '' });
   };
 
@@ -143,6 +147,23 @@ export const SubmitFrameButton: React.FC<SubmitFrameButtonProps> = ({
                 className="w-full h-24 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                 disabled={isSubmitting}
               />
+            </div>
+
+            {/* Answer Input (Optional) */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Answer (optional):
+              </label>
+              <textarea
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                placeholder="Enter the answer to your question (optional)..."
+                className="w-full h-20 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                disabled={isSubmitting}
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                For Q&A questions where just the frame isn't enough context
+              </p>
             </div>
 
             {/* Status Message */}

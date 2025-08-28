@@ -48,6 +48,8 @@ def save_submissions(submissions):
 def submit_question():
     """Submit a question with frame information"""
     try:
+        from config import ROOT_DIR
+        
         data = request.get_json()
         
         # Validate required fields
@@ -63,13 +65,21 @@ def submit_question():
         # Load existing submissions
         submissions = load_submissions()
         
-        # Create frame entry
+        # Add ROOT_DIR back to the relative video path for storage
+        relative_video_path = data['video_path'].lstrip('/')
+        full_video_path = os.path.join(ROOT_DIR, relative_video_path)
+        
+        # Create frame entry with full path
         frame_entry = {
-            'video_path': data['video_path'],
+            'video_path': full_video_path,
             'timestamp': float(data['timestamp']),
             'frame_idx': int(data['frame_idx']),
             'submitted_at': datetime.now().isoformat()
         }
+        
+        # Add optional answer field if provided
+        if 'answer' in data and data['answer'] and data['answer'].strip():
+            frame_entry['answer'] = data['answer'].strip()
         
         # Add to submissions
         if question not in submissions:
@@ -130,6 +140,8 @@ def get_questions():
 def delete_frame():
     """Delete a specific frame from submissions"""
     try:
+        from config import ROOT_DIR
+        
         data = request.get_json()
         
         # Validate required fields
@@ -139,7 +151,8 @@ def delete_frame():
                 return jsonify({'error': f'Missing required field: {field}'}), 400
         
         question = data['question'].strip()
-        video_path = data['video_path']
+        relative_video_path = data['video_path'].lstrip('/')
+        full_video_path = os.path.join(ROOT_DIR, relative_video_path)
         timestamp = float(data['timestamp'])
         frame_idx = int(data['frame_idx'])
         
@@ -149,11 +162,11 @@ def delete_frame():
         if question not in submissions:
             return jsonify({'error': 'Question not found'}), 404
         
-        # Find and remove the matching frame
+        # Find and remove the matching frame (compare with full path)
         original_count = len(submissions[question])
         submissions[question] = [
             frame for frame in submissions[question]
-            if not (frame['video_path'] == video_path and 
+            if not (frame['video_path'] == full_video_path and 
                    frame['timestamp'] == timestamp and 
                    frame['frame_idx'] == frame_idx)
         ]
@@ -174,6 +187,46 @@ def delete_frame():
                 'message': 'Frame deleted successfully',
                 'deleted_count': deleted_count,
                 'remaining_frames': len(submissions.get(question, []))
+            })
+        else:
+            return jsonify({'error': 'Failed to save changes'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/reorder', methods=['POST'])
+def reorder_frames():
+    """Reorder frames within a question"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if 'question' not in data or 'frames' not in data:
+            return jsonify({'error': 'Missing required fields: question, frames'}), 400
+        
+        question = data['question'].strip()
+        new_frames = data['frames']
+        
+        if not question:
+            return jsonify({'error': 'Question cannot be empty'}), 400
+        
+        if not isinstance(new_frames, list):
+            return jsonify({'error': 'Frames must be a list'}), 400
+        
+        # Load existing submissions
+        submissions = load_submissions()
+        
+        if question not in submissions:
+            return jsonify({'error': 'Question not found'}), 404
+        
+        # Update the frames order for the question
+        submissions[question] = new_frames
+        
+        # Save submissions
+        if save_submissions(submissions):
+            return jsonify({
+                'success': True,
+                'message': 'Frames reordered successfully'
             })
         else:
             return jsonify({'error': 'Failed to save changes'}), 500
@@ -206,10 +259,12 @@ def get_stats():
 def extract_frame():
     """Extract frame from video at specific timestamp"""
     try:
-        video_path = request.args.get('video_path')
+        from config import ROOT_DIR
+        
+        relative_video_path = request.args.get('video_path')
         timestamp = request.args.get('timestamp')
         
-        if not video_path or not timestamp:
+        if not relative_video_path or not timestamp:
             return jsonify({'error': 'Missing video_path or timestamp parameter'}), 400
         
         try:
@@ -217,12 +272,15 @@ def extract_frame():
         except ValueError:
             return jsonify({'error': 'Invalid timestamp format'}), 400
         
+        # Add ROOT_DIR back to the relative path
+        full_video_path = os.path.join(ROOT_DIR, relative_video_path.lstrip('/'))
+        
         # Check if video file exists
-        if not os.path.exists(video_path):
+        if not os.path.exists(full_video_path):
             return jsonify({'error': 'Video file not found'}), 404
         
         # Open video file
-        cap = cv2.VideoCapture(video_path)
+        cap = cv2.VideoCapture(full_video_path)
         if not cap.isOpened():
             return jsonify({'error': 'Could not open video file'}), 500
         

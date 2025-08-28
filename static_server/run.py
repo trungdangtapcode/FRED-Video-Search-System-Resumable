@@ -6,6 +6,8 @@ import uvicorn
 
 app = FastAPI()
 
+
+
 # --- CORS settings ---
 app.add_middleware(
     CORSMiddleware,
@@ -23,9 +25,18 @@ async def search(request: Request):
     return JSONResponse({"message": "Search received", "data": body})
 
 # --- Static files ---
+class CORSEnabledStaticFiles(StaticFiles):
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        # Add CORS headers
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        return response
+
 app.mount(
     "/",
-    StaticFiles(directory="/root", html=True, follow_symlink=True),
+    CORSEnabledStaticFiles(directory="/root", html=True, follow_symlink=True),
     name="static",
 )
 

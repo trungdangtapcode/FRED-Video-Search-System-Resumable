@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { submissionService } from '@/services/submissionService';
 import type { QuestionSubmission } from '@/services/submissionService';
 import { openVideoPlayer } from '@/utils/videoUtils';
-import { extractVideoFrame } from '@/utils/videoFrameExtraction';
 import { API_ENDPOINTS, ROOT_DIR } from '@/constants';
 import { Film, Clock, Hash } from 'lucide-react';
 import { ConfirmModal, AlertModal } from '@/components/ui/Modal';
@@ -27,12 +26,22 @@ const FrameImage: React.FC<{
         setIsLoading(true);
         setError(null);
 
-        // Get video URL from static server
-        const videoUrl = getVideoUrl(frame.video_path);
-        console.log('Extracting frame from video:', videoUrl, 'at timestamp:', frame.timestamp);
+        // Remove ROOT_DIR from video path before sending to backend
+        const relativePath = frame.video_path.replace(ROOT_DIR, '');
+        
+        // Use backend extract_frame endpoint instead of client-side extraction
+        const extractUrl = `${API_ENDPOINTS.SUBMIT_SERVER}/extract_frame?video_path=${encodeURIComponent(relativePath)}&timestamp=${frame.timestamp}`;
+        console.log('Extracting frame from backend:', extractUrl);
 
-        const frameDataUrl = await extractVideoFrame(videoUrl, frame.timestamp);
-        setImageSrc(frameDataUrl);
+        const response = await fetch(extractUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to extract frame: ${response.statusText}`);
+        }
+
+        // Convert response to blob and create object URL
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+        setImageSrc(imageUrl);
       } catch (error) {
         console.error('Failed to extract frame:', error);
         setError('Failed to extract frame');
@@ -45,13 +54,14 @@ const FrameImage: React.FC<{
     };
 
     extractFrame();
+    
+    // Cleanup function to revoke object URL when component unmounts
+    return () => {
+      if (imageSrc && imageSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(imageSrc);
+      }
+    };
   }, [frame.video_path, frame.timestamp, onError]);
-
-  const getVideoUrl = (videoPath: string) => {
-    // Remove the /root prefix and add the static server base URL
-    const relativePath = videoPath.replace(ROOT_DIR, '');
-    return `${API_ENDPOINTS.STATIC_SERVER}/${relativePath}`;
-  };
 
   if (isLoading) {
     return (
@@ -87,6 +97,7 @@ const SubmissionsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [isReorderMode, setIsReorderMode] = useState(false);
   
   // Modal states
   const [confirmModal, setConfirmModal] = useState<{
@@ -113,11 +124,26 @@ const SubmissionsPage: React.FC = () => {
     type: 'info'
   });
 
+  // Reorder modal state
+  const [reorderModal, setReorderModal] = useState<{
+    isOpen: boolean;
+    frame: QuestionSubmission | null;
+    question: string;
+    currentIndex: number;
+    totalFrames: number;
+  }>({
+    isOpen: false,
+    frame: null,
+    question: '',
+    currentIndex: 0,
+    totalFrames: 0
+  });
+
   useEffect(() => {
     loadSubmissions();
   }, []);
 
-  // Handle "X" key for delete mode
+  // Handle "X" key for delete mode and "C" key for reorder mode
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ignore if typing in an input
@@ -129,12 +155,22 @@ const SubmissionsPage: React.FC = () => {
         console.log('X key pressed - entering delete mode');
         setIsDeleteMode(true);
       }
+
+      if (event.key.toLowerCase() === 'c' && !event.ctrlKey && !event.metaKey) {
+        console.log('C key pressed - entering reorder mode');
+        setIsReorderMode(true);
+      }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === 'x') {
         console.log('X key released - exiting delete mode');
         setIsDeleteMode(false);
+      }
+
+      if (event.key.toLowerCase() === 'c') {
+        console.log('C key released - exiting reorder mode');
+        setIsReorderMode(false);
       }
     };
 
@@ -171,8 +207,59 @@ const SubmissionsPage: React.FC = () => {
     }
   };
 
+  const handleReorderFrame = async (newPosition: number) => {
+    const { frame, question, currentIndex } = reorderModal;
+    if (!frame) return;
+
+    try {
+      // Find the question group
+      const questionGroup = submissions.find(s => s.question === question);
+      if (!questionGroup) return;
+
+      // Create new frames array with the frame moved to new position
+      const newFrames = [...questionGroup.frames];
+      
+      // Remove frame from current position
+      const [movedFrame] = newFrames.splice(currentIndex, 1);
+      
+      // Insert frame at new position
+      newFrames.splice(newPosition, 0, movedFrame);
+
+      // Update the submissions state locally
+      const updatedSubmissions = submissions.map(s => 
+        s.question === question 
+          ? { ...s, frames: newFrames }
+          : s
+      );
+      setSubmissions(updatedSubmissions);
+
+      // Call backend to update the order
+      await submissionService.reorderFrames(question, newFrames);
+
+      setAlertModal({
+        isOpen: true,
+        title: 'Success',
+        message: 'Frame order updated successfully!',
+        type: 'success'
+      });
+
+      setReorderModal({ isOpen: false, frame: null, question: '', currentIndex: 0, totalFrames: 0 });
+    } catch (error) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to reorder frame. Please try again.',
+        type: 'error'
+      });
+      console.error('Reorder error:', error);
+      
+      // Reload submissions to reset state
+      await loadSubmissions();
+    }
+  };
+
   const handleFrameClick = async (frame: QuestionSubmission, question: string) => {
-    console.log('Frame clicked. Delete mode:', isDeleteMode);
+    console.log('Frame clicked. Delete mode:', isDeleteMode, 'Reorder mode:', isReorderMode);
     
     if (isDeleteMode) {
       console.log('In delete mode - deleting frame');
@@ -213,6 +300,28 @@ const SubmissionsPage: React.FC = () => {
             console.error('Delete error:', error);
           }
         }
+      });
+    } else if (isReorderMode) {
+      console.log('In reorder mode - showing reorder dialog');
+      
+      // Find the current question's frames and the index of the clicked frame
+      const questionGroup = submissions.find(s => s.question === question);
+      if (!questionGroup) return;
+      
+      const currentIndex = questionGroup.frames.findIndex(f => 
+        f.video_path === frame.video_path && 
+        f.timestamp === frame.timestamp && 
+        f.frame_idx === frame.frame_idx
+      );
+      
+      if (currentIndex === -1) return;
+      
+      setReorderModal({
+        isOpen: true,
+        frame: frame,
+        question: question,
+        currentIndex: currentIndex,
+        totalFrames: questionGroup.frames.length
       });
     } else {
       console.log('Not in delete mode - opening video player');
@@ -274,12 +383,20 @@ const SubmissionsPage: React.FC = () => {
                 {submissions.reduce((total, group) => total + group.frames.length, 0)} frame{submissions.reduce((total, group) => total + group.frames.length, 0) !== 1 ? 's' : ''}
               </p>
             </div>
-            {/* Delete mode indicator */}
-            {isDeleteMode && (
-              <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg animate-pulse">
-                DELETE MODE - Click frame to delete
-              </div>
-            )}
+            <div className="flex gap-2">
+              {/* Delete mode indicator */}
+              {isDeleteMode && (
+                <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg animate-pulse">
+                  DELETE MODE - Click frame to delete
+                </div>
+              )}
+              {/* Reorder mode indicator */}
+              {isReorderMode && (
+                <div className="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg animate-pulse">
+                  REORDER MODE - Click frame to change position
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -303,17 +420,26 @@ const SubmissionsPage: React.FC = () => {
 
             {/* Frames Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-              {group.frames.map((frame) => (
+              {group.frames.map((frame, index) => (
                 <div
                   key={`${frame.video_path}-${frame.frame_idx}`}
-                  className={`group cursor-pointer ${
+                  className={`group cursor-pointer relative ${
                     isDeleteMode ? 'ring-2 ring-red-400' : ''
+                  } ${
+                    isReorderMode ? 'ring-2 ring-blue-400' : ''
                   }`}
                   onClick={() => handleFrameClick(frame, group.question)}
                 >
                   <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden hover:opacity-80 transition-opacity">
                     <FrameImage frame={frame} />
                   </div>
+                  
+                  {/* Frame position indicator for reorder mode */}
+                  {isReorderMode && (
+                    <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      {index + 1}
+                    </div>
+                  )}
                   
                   {/* Frame Info */}
                   <div className="mt-2 space-y-1">
@@ -328,6 +454,12 @@ const SubmissionsPage: React.FC = () => {
                     <div className="text-xs text-gray-400">
                       Frame #{frame.frame_idx}
                     </div>
+                    {/* Answer display if available */}
+                    {frame.answer && (
+                      <div className="text-xs text-green-600 bg-green-50 p-1 rounded mt-1">
+                        <strong>A:</strong> {frame.answer.length > 50 ? `${frame.answer.substring(0, 50)}...` : frame.answer}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -355,6 +487,107 @@ const SubmissionsPage: React.FC = () => {
         message={alertModal.message}
         type={alertModal.type}
       />
+
+      {/* Reorder Modal */}
+      {reorderModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw] border shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Reorder Frame</h3>
+              <button
+                onClick={() => setReorderModal({ isOpen: false, frame: null, question: '', currentIndex: 0, totalFrames: 0 })}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Frame Info */}
+            <div className="bg-gray-100 rounded p-3 mb-4 text-sm text-gray-700">
+              <div className="font-mono">
+                <div>Question: {reorderModal.question}</div>
+                <div>Current Position: {reorderModal.currentIndex + 1} of {reorderModal.totalFrames}</div>
+                <div>Video: {reorderModal.frame?.video_path.split('/').pop()}</div>
+                <div>Timestamp: {reorderModal.frame ? formatTimestamp(reorderModal.frame.timestamp) : ''}</div>
+              </div>
+            </div>
+
+            {/* Position Input */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                New Position (1-{reorderModal.totalFrames}):
+              </label>
+              <input
+                type="number"
+                min="1"
+                max={reorderModal.totalFrames}
+                defaultValue={reorderModal.currentIndex + 1}
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                id="new-position"
+              />
+            </div>
+
+            {/* Quick Position Buttons */}
+            <div className="mb-4">
+              <div className="text-sm font-medium text-gray-700 mb-2">Quick Actions:</div>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => handleReorderFrame(0)}
+                  disabled={reorderModal.currentIndex === 0}
+                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Move to First
+                </button>
+                <button
+                  onClick={() => handleReorderFrame(reorderModal.totalFrames - 1)}
+                  disabled={reorderModal.currentIndex === reorderModal.totalFrames - 1}
+                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Move to Last
+                </button>
+                {reorderModal.currentIndex > 0 && (
+                  <button
+                    onClick={() => handleReorderFrame(reorderModal.currentIndex - 1)}
+                    className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
+                  >
+                    Move Up
+                  </button>
+                )}
+                {reorderModal.currentIndex < reorderModal.totalFrames - 1 && (
+                  <button
+                    onClick={() => handleReorderFrame(reorderModal.currentIndex + 1)}
+                    className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
+                  >
+                    Move Down
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setReorderModal({ isOpen: false, frame: null, question: '', currentIndex: 0, totalFrames: 0 })}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const input = document.getElementById('new-position') as HTMLInputElement;
+                  const newPosition = parseInt(input.value) - 1; // Convert to 0-based index
+                  if (newPosition >= 0 && newPosition < reorderModal.totalFrames && newPosition !== reorderModal.currentIndex) {
+                    handleReorderFrame(newPosition);
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Move Frame
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
