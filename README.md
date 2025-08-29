@@ -62,3 +62,10 @@ cd hcmc/text_search
 conda activate elasticsearch
 python run.py
 ```
+
+## Submit serever
+```
+cd hcmc/submit_server
+conda activate utils
+python run.py
+```
