@@ -76,7 +76,7 @@ if __name__ == "__main__":
     #         "/root/data/embedding/siglip2_batch1.index", type='dot')
     # convert_numpy_to_faiss_index("/root/data/embedding/siglip2_batch1_pseudo.npy",
     #                 "/root/data/embedding/siglip2_batch1_pseudo.index", type='dot')
-    normalized_embeddings = normalize_embeddings(np.load("/root/data/embedding/dinov3/dinov3_batch1.npy"))
-    np.save("/root/data/embedding/dinov3/dinov3_batch1_normalized.npy", normalized_embeddings)
+    # normalized_embeddings = normalize_embeddings(np.load("/root/data/embedding/dinov3/dinov3_batch1.npy"))
+    # np.save("/root/data/embedding/dinov3/dinov3_batch1_normalized.npy", normalized_embeddings)
     convert_numpy_to_faiss_index("/root/data/embedding/dinov3/dinov3_batch1_normalized.npy",
                     "/root/data/embedding/dinov3_batch1_normalized.index", type='dot')

@@ -4,6 +4,7 @@ from app.retriever_service import (
     retrieve_metadata_from_ocr,
     retrieve_metadata_from_asr,
     retrieve_metadata_from_image,
+    retrieve_similar_frames_by_metadata_index,
     hybrid_search,
     multi_frame_search
 )
@@ -191,6 +192,40 @@ def retrieve_image():
         return jsonify({"error": f"Invalid top_k value: {str(e)}"}), 400
     except Exception as e:
         print(f"Error in /retrieve_image: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        return jsonify({"error": str(e)}), 500
+
+@main.route('/retrieve_similar_frames', methods=['POST'])
+def retrieve_similar_frames():
+    """
+    Find similar frames using DINOv3 embeddings based on metadata index.
+    
+    Expected request body:
+    {
+        "metadata_index": int,  # Index in the metadata list
+        "top_k": int (optional) # Number of similar frames to return (default: 10)
+    }
+    """
+    try:
+        data = request.get_json()
+        
+        if 'metadata_index' not in data:
+            return jsonify({"error": "metadata_index parameter is required"}), 400
+            
+        metadata_index = int(data['metadata_index'])
+        top_k = int(data.get('top_k', 10))
+        
+        # Perform frame similarity search
+        results = retrieve_similar_frames_by_metadata_index(metadata_index, top_k)
+        
+        return jsonify(results)
+
+    except ValueError as e:
+        return jsonify({"error": f"Invalid parameter value: {str(e)}"}), 400
+    except Exception as e:
+        print(f"Error in /retrieve_similar_frames: {e}")
         import traceback
         traceback.print_exc()
         

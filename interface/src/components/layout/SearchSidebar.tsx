@@ -12,9 +12,10 @@ import { Button } from '@/components/ui/button';
 interface SearchSidebarProps {
   onSearchResults: (results: any[], searchType: SearchType) => void;
   onSearchStart?: () => void;
+  onTopKChange?: (topK: number) => void;
 }
 
-export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, onSearchStart }) => {
+export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, onSearchStart, onTopKChange }) => {
   const { searchState, performSearch, clearResults } = useUnifiedSearch();
   const { searchState: multiFrameState, performSearch: performMultiFrameSearch, clearResults: clearMultiFrameResults } = useMultiFrameSearch();
   const { searchState: imageSearchState, performSearch: performImageSearch, clearResults: clearImageResults } = useImageSearch();
@@ -23,6 +24,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
   const handleSearch = async (query: string, ocr: string, asr: string, topK: number) => {
     console.log('SearchSidebar: Starting unified search with:', { query, ocr, asr, topK });
     onSearchStart?.();
+    onTopKChange?.(topK); // Report the current top_k value
     const results = await performSearch(query, ocr, asr, topK);
     console.log('SearchSidebar: Search completed, got', results.length, 'results');
     // Use 'text' as the search type for compatibility with existing display logic
@@ -32,6 +34,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
   const handleMultiFrameSearch = async (frames: any[], topK: number) => {
     console.log('SearchSidebar: Starting multi-frame search with:', { frames, topK });
     onSearchStart?.();
+    onTopKChange?.(topK); // Report the current top_k value
     const results = await performMultiFrameSearch(frames, topK);
     console.log('SearchSidebar: Multi-frame search completed, got', results.length, 'results');
     console.log('Sample results:', results);
@@ -49,6 +52,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
   const handleImageSearch = async (imageFile: File, topK: number) => {
     console.log('SearchSidebar: Starting image search with:', { fileName: imageFile.name, topK });
     onSearchStart?.();
+    onTopKChange?.(topK); // Report the current top_k value
     const results = await performImageSearch(imageFile, topK);
     console.log('SearchSidebar: Image search completed, got', results.length, 'results');
     // Set default fps for compatibility

@@ -34,7 +34,14 @@ def retrieve_metadata_from_text(text: str, top_k: int = 5, return_scores: bool =
         scores = indexs[1][0]
         return [(metadata[i], scores[j], i) for j, i in enumerate(idx)]
     
-    return [metadata[i] for i in idx]
+    # Add metadata_index to each result
+    results = []
+    for i in idx:
+        frame_data = metadata[i].copy()
+        frame_data['metadata_index'] = i
+        results.append(frame_data)
+    
+    return results
 
 def retrieve_metadata_from_asr(text: str, top_k: int = 5, return_scores: bool = False, need_pop = True):
     indexs = text_search_instance.search(
@@ -51,7 +58,14 @@ def retrieve_metadata_from_asr(text: str, top_k: int = 5, return_scores: bool = 
     if return_scores:
         return [(metadata[int(x['idx'])], x['score'], x['idx']) for x in indexs]
 
-    return [metadata[int(x['idx'])] for x in indexs]
+    # Add metadata_index to each result
+    results = []
+    for x in indexs:
+        frame_data = metadata[int(x['idx'])].copy()
+        frame_data['metadata_index'] = int(x['idx'])
+        results.append(frame_data)
+    
+    return results
 
 def retrieve_metadata_from_ocr(text: str, top_k: int = 5, return_scores: bool = False, need_pop = True):
     indexs = text_search_instance.search(
@@ -69,7 +83,14 @@ def retrieve_metadata_from_ocr(text: str, top_k: int = 5, return_scores: bool = 
     if return_scores:
         return [(metadata[int(x['idx'])], x['score'], x['idx']) for x in indexs]
 
-    return [metadata[int(x['idx'])] for x in indexs]
+    # Add metadata_index to each result
+    results = []
+    for x in indexs:
+        frame_data = metadata[int(x['idx'])].copy()
+        frame_data['metadata_index'] = int(x['idx'])
+        results.append(frame_data)
+    
+    return results
 
 def retrieve_metadata_from_image(image_data, top_k: int = 5, return_scores: bool = False):
     """
@@ -108,12 +129,102 @@ def retrieve_metadata_from_image(image_data, top_k: int = 5, return_scores: bool
             if return_scores:
                 return [(metadata[i], scores[j], i) for j, i in enumerate(indices)]
             
-            return [metadata[i] for i in indices]
+            # Add metadata_index to each result
+            results = []
+            for i in indices:
+                frame_data = metadata[i].copy()
+                frame_data['metadata_index'] = i
+                results.append(frame_data)
+            
+            return results
         else:
             raise RuntimeError(f"Retriever server error: {resp.text}")
             
     except Exception as e:
         print(f"Error in image search: {e}")
+        raise e
+
+def retrieve_similar_frames_by_index(frame_index: int, top_k: int = 10):
+    """
+    Retrieve similar frames using DINOv3 embeddings based on frame index.
+    
+    Args:
+        frame_index: Index of the frame to find similarities for
+        top_k: Number of similar frames to return
+    
+    Returns:
+        List of metadata entries for similar frames
+    """
+    try:
+        import requests
+        
+        payload = {
+            "frame_index": frame_index,
+            "top_k": top_k
+        }
+        
+        resp = requests.post("http://localhost:5679/search_frame_similarity", json=payload)
+        if resp.status_code == 200:
+            result = resp.json()
+            similar_indices = result["indices"]
+            
+            # Get metadata for similar frames
+            similar_frames = []
+            for idx in similar_indices:
+                if 0 <= idx < len(metadata):
+                    frame_metadata = metadata[idx].copy()
+                    # Add similarity info
+                    frame_metadata['similarity_to_frame'] = frame_index
+                    similar_frames.append(frame_metadata)
+            
+            return similar_frames
+        else:
+            raise RuntimeError(f"Frame similarity server error: {resp.text}")
+            
+    except Exception as e:
+        print(f"Error in frame similarity search: {e}")
+        raise e
+
+def retrieve_similar_frames_by_metadata_index(metadata_index: int, top_k: int = 10):
+    """
+    Retrieve similar frames using DINOv3 embeddings based on metadata index.
+    
+    Args:
+        metadata_index: Index of the frame in the metadata list to find similarities for
+        top_k: Number of similar frames to return
+    
+    Returns:
+        List of metadata entries for similar frames
+    """
+    try:
+        import requests
+        
+        payload = {
+            "metadata_index": metadata_index,
+            "top_k": top_k
+        }
+        
+        resp = requests.post("http://localhost:5679/search_frame_similarity", json=payload)
+        if resp.status_code == 200:
+            result = resp.json()
+            similar_indices = result["indices"]
+            
+            # Get metadata for similar frames and add metadata_index
+            similar_frames = []
+            for idx in similar_indices:
+                if 0 <= idx < len(metadata):
+                    frame_metadata = metadata[idx].copy()
+                    # Add metadata index and similarity info
+                    frame_metadata['metadata_index'] = idx
+                    frame_metadata['similarity_to_metadata_index'] = metadata_index
+                    similar_frames.append(frame_metadata)
+            
+            return similar_frames
+        else:
+            raise RuntimeError(f"Frame similarity server error: {resp.text}")
+            
+    except Exception as e:
+        print(f"Error in frame similarity search: {e}")
         raise e
 
 def hybrid_search(query, ocr, asr, top_k=5, normalize_scores=True):
@@ -153,7 +264,22 @@ def hybrid_search(query, ocr, asr, top_k=5, normalize_scores=True):
             
     sorted_results = sorted(combined_results.values(), key=lambda x: x[1], reverse=True)[:top_k]
     
-    metadatas = [item for item, score in sorted_results]
+    # Add metadata_index to each result
+    metadatas = []
+    for item, score in sorted_results:
+        # Find the metadata_index for this item
+        for i, meta in enumerate(metadata):
+            if (meta.get('video_path') == item.get('video_path') and 
+                meta.get('frame_idx') == item.get('frame_idx') and
+                meta.get('timestamp') == item.get('timestamp')):
+                item_with_index = item.copy()
+                item_with_index['metadata_index'] = i
+                metadatas.append(item_with_index)
+                break
+        else:
+            # Fallback: add without metadata_index if not found
+            metadatas.append(item)
+    
     return metadatas
 
 def multi_frame_search(frame_queries, top_k=5, normalize_scores=True):
@@ -276,7 +402,22 @@ def multi_frame_search(frame_queries, top_k=5, normalize_scores=True):
     
     # Sort by combined score and return top results
     sorted_results = sorted(unique_results.values(), key=lambda x: x[1], reverse=True)[:top_k]
-    metadatas = [item for item, score in sorted_results]
+    
+    # Add metadata_index to each result
+    metadatas = []
+    for item, score in sorted_results:
+        # Find the metadata_index for this item
+        for i, meta in enumerate(metadata):
+            if (meta.get('video_path') == item.get('video_path') and 
+                meta.get('frame_idx') == item.get('frame_idx') and
+                meta.get('timestamp') == item.get('timestamp')):
+                item_with_index = item.copy()
+                item_with_index['metadata_index'] = i
+                metadatas.append(item_with_index)
+                break
+        else:
+            # Fallback: add without metadata_index if not found
+            metadatas.append(item)
     
     print(f"Multi-frame search completed: {len(metadatas)} results")
     return metadatas

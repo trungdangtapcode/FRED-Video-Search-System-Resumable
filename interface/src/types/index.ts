@@ -20,6 +20,7 @@ export interface SearchResult {
   timestamp: number;
   video_path: string;
   compressed_frame_path: string;
+  metadata_index?: number; // Index in the metadata list for DINOv3 similarity search
 }
 
 export type SearchResponse = SearchResult[];

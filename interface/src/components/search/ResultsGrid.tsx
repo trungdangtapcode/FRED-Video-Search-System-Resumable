@@ -5,6 +5,7 @@ import { FrameTooltip } from '@/components/ui/frame-tooltip';
 import { groupResultsByVideo } from '@/utils/groupResults';
 import { openVideoPlayer } from '@/utils/videoUtils';
 import { SubmissionDialog } from '@/components/video/SubmissionDialog';
+import { API_ENDPOINTS } from '@/constants';
 import { Film } from 'lucide-react';
 
 interface ResultsGridProps {
@@ -12,6 +13,8 @@ interface ResultsGridProps {
   isLoading?: boolean;
   framesPerRow?: number;
   displayMode?: DisplayMode;
+  onResultsUpdate?: (results: SearchResult[]) => void; // Add callback for updating results
+  currentTopK?: number; // Current top_k value for similarity search
 }
 
 // Component for grouped results view
@@ -19,6 +22,7 @@ const GroupedResultsView: React.FC<{
   results: SearchResult[]; 
   framesPerRow: number;
   isSubmitMode: boolean;
+  isDinoMode: boolean;
   onFrameClick: (result: SearchResult) => void;
   submissionDialogOpen: boolean;
   selectedFrameForSubmission: SearchResult | null;
@@ -27,6 +31,7 @@ const GroupedResultsView: React.FC<{
   results, 
   framesPerRow,
   isSubmitMode,
+  isDinoMode,
   onFrameClick,
   submissionDialogOpen,
   selectedFrameForSubmission,
@@ -75,11 +80,11 @@ const GroupedResultsView: React.FC<{
                 r.video_path === result.video_path && r.frame_idx === result.frame_idx
               );
               return (
-                <div key={`${result.video_path}-${result.frame_idx}-${result.timestamp}`}>
+                <div key={`${result.video_path}-${result.frame_idx}-${result.timestamp}-${result.frame_path}`}>
                   <FrameTooltip frameData={result} frameIndex={globalIndex}>
                     <div 
                       className={`aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer ${
-                        isSubmitMode ? 'ring-2 ring-yellow-400' : ''
+                        isSubmitMode ? 'ring-2 ring-yellow-400' : isDinoMode ? 'ring-2 ring-purple-400' : ''
                       }`}
                       onClick={() => onFrameClick(result)}
                     >
@@ -123,13 +128,54 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
   results, 
   isLoading, 
   framesPerRow = 10,
-  displayMode = 'all'
+  displayMode = 'all',
+  onResultsUpdate,
+  currentTopK = 10
 }) => {
   const [isSubmitMode, setIsSubmitMode] = useState(false);
+  const [isDinoMode, setIsDinoMode] = useState(false);
   const [submissionDialogOpen, setSubmissionDialogOpen] = useState(false);
   const [selectedFrameForSubmission, setSelectedFrameForSubmission] = useState<SearchResult | null>(null);
 
-  // Handle "S" key for submit mode
+  // Function to perform similarity search
+  const handleSimilaritySearch = async (result: SearchResult) => {
+    if (!result.metadata_index && result.metadata_index !== 0) {
+      console.error('No metadata_index available for similarity search');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://38.29.145.80:5000/retrieve_similar_frames', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metadata_index: result.metadata_index,
+          top_k: currentTopK
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const similarFrames = await response.json();
+      
+      // Update the main results with similar frames
+      console.log('Similar frames found:', similarFrames);
+      
+      // Update the results in the parent component
+      if (onResultsUpdate && Array.isArray(similarFrames)) {
+        onResultsUpdate(similarFrames);
+      }
+      
+    } catch (error) {
+      console.error('Error finding similar frames:', error);
+    }
+  };
+
+  // Handle "S" key for submit mode and "D" key for DINOv3 mode
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ignore if typing in an input
@@ -141,12 +187,22 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
         console.log('S key pressed - entering submit mode');
         setIsSubmitMode(true);
       }
+      
+      if (event.key.toLowerCase() === 'd' && !event.ctrlKey && !event.metaKey) {
+        console.log('D key pressed - entering DINOv3 similarity mode');
+        setIsDinoMode(true);
+      }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === 's') {
         console.log('S key released - exiting submit mode');
         setIsSubmitMode(false);
+      }
+      
+      if (event.key.toLowerCase() === 'd') {
+        console.log('D key released - exiting DINOv3 similarity mode');
+        setIsDinoMode(false);
       }
     };
 
@@ -167,6 +223,9 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
       console.log('In submit mode - opening submission dialog');
       setSelectedFrameForSubmission(result);
       setSubmissionDialogOpen(true);
+    } else if (isDinoMode) {
+      console.log('In DINOv3 mode - performing similarity search');
+      await handleSimilaritySearch(result);
     } else {
       console.log('Not in submit mode - opening video player');
       openVideoPlayer(result);
@@ -200,6 +259,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
         results={results} 
         framesPerRow={framesPerRow} 
         isSubmitMode={isSubmitMode}
+        isDinoMode={isDinoMode}
         onFrameClick={handleFrameClick}
         submissionDialogOpen={submissionDialogOpen}
         selectedFrameForSubmission={selectedFrameForSubmission}
@@ -229,6 +289,12 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
           SUBMIT MODE - Click frame to submit
         </div>
       )}
+      {/* DINOv3 mode indicator */}
+      {isDinoMode && (
+        <div className="absolute top-4 right-4 z-10 bg-purple-500 text-white px-3 py-2 rounded-lg font-bold text-sm shadow-lg animate-pulse">
+          DINO MODE - Click frame for similar frames
+        </div>
+      )}
       <div className={getGridClass()}>
         {results.map((result, index) => (
           <div key={`${result.video_path}-${result.frame_idx}-${result.frame_idx}-${result.timestamp}-${result.frame_path}`}>
@@ -238,7 +304,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
             >
               <div 
                 className={`aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer group relative ${
-                  isSubmitMode ? 'ring-2 ring-yellow-400' : ''
+                  isSubmitMode ? 'ring-2 ring-yellow-400' : isDinoMode ? 'ring-2 ring-purple-400' : ''
                 }`}
                 onClick={() => handleFrameClick(result)}
               >

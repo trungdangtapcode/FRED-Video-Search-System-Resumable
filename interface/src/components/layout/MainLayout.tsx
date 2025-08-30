@@ -9,6 +9,7 @@ export const MainLayout: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [framesPerRow, setFramesPerRow] = useState(10);
   const [displayMode, setDisplayMode] = useState<DisplayMode>('all');
+  const [currentTopK, setCurrentTopK] = useState<number>(100); // Track current top_k value
 
   const handleSearchResults = (results: SearchResult[], searchType: SearchType) => {
     console.log('MainLayout: Received search results:', results.length, 'results for', searchType);
@@ -21,10 +22,19 @@ export const MainLayout: React.FC = () => {
     setIsLoading(true);
   };
 
+  const handleTopKChange = (topK: number) => {
+    console.log('MainLayout: Top K changed to:', topK);
+    setCurrentTopK(topK);
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <SearchSidebar onSearchResults={handleSearchResults} onSearchStart={handleSearchStart} />
+      <SearchSidebar 
+        onSearchResults={handleSearchResults} 
+        onSearchStart={handleSearchStart}
+        onTopKChange={handleTopKChange}
+      />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -44,6 +54,8 @@ export const MainLayout: React.FC = () => {
             isLoading={isLoading}
             framesPerRow={framesPerRow}
             displayMode={displayMode}
+            onResultsUpdate={setCurrentResults}
+            currentTopK={currentTopK}
           />
         </div>
       </div>
