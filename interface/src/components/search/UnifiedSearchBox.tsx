@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Search, Loader2 } from 'lucide-react';
 import { DEFAULT_VALUES } from '@/constants';
+import { TranslationService } from '@/services/translationService';
 
 interface UnifiedSearchState {
   query: string;
@@ -31,6 +32,7 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
   const [localOcr, setLocalOcr] = useState(searchState.ocr);
   const [localAsr, setLocalAsr] = useState(searchState.asr);
   const [localTopK, setLocalTopK] = useState(searchState.topK);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +50,27 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
     onClear();
   };
 
-  // Handle Ctrl+Enter keyboard shortcut
+  // Translation function
+  const handleTranslateQuery = async () => {
+    if (!localQuery.trim()) {
+      console.log('No query text to translate');
+      return;
+    }
+
+    setIsTranslating(true);
+    try {
+      const result = await TranslationService.translateVietnameseToEnglish(localQuery);
+      setLocalQuery(result.translated_text);
+      console.log('Translation successful:', result);
+    } catch (error) {
+      console.error('Translation failed:', error);
+      // Optionally show error to user
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  // Handle Ctrl+Enter keyboard shortcut and Ctrl+Shift+T for translation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === 'Enter') {
@@ -57,6 +79,12 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
         if (hasContent && !searchState.isLoading) {
           onSearch(localQuery.trim(), localOcr.trim(), localAsr.trim(), localTopK);
         }
+      }
+      
+      // console.log('Key pressed:', event.key, 'Ctrl:', event.ctrlKey, 'Shift:', event.shiftKey, 'Alt:', event.altKey);
+      if (event.ctrlKey && event.key === 'Q') {
+        event.preventDefault(); // Prevent browser default action
+        handleTranslateQuery();
       }
     };
 
@@ -88,10 +116,9 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
               placeholder="Enter text description..."
               value={localQuery}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalQuery(e.target.value)}
-              disabled={searchState.isLoading}
+              disabled={searchState.isLoading || isTranslating}
               className="w-full text-sm min-h-[60px] resize-none text-xs leading-relaxed"
               rows={3}
-
               autoComplete="on"
               spellCheck={true}
             />

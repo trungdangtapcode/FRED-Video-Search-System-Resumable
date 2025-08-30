@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Search, Loader2, Plus, Minus, Clock } from 'lucide-react';
 import { DEFAULT_VALUES } from '@/constants';
+import { TranslationService } from '@/services/translationService';
 
 interface FrameQuery {
   id: string;
@@ -35,6 +36,7 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
 }) => {
   const [localFrames, setLocalFrames] = useState<FrameQuery[]>(searchState.frames);
   const [localTopK, setLocalTopK] = useState(searchState.topK);
+  const [translatingFrameId, setTranslatingFrameId] = useState<string | null>(null);
 
   const addFrame = () => {
     if (localFrames.length < 3) {
@@ -83,7 +85,28 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
     onClear();
   };
 
-  // Handle Ctrl+Enter keyboard shortcut
+  // Translation function for a specific frame
+  const handleTranslateFrame = async (frameId: string) => {
+    const frame = localFrames.find(f => f.id === frameId);
+    if (!frame || !frame.query.trim()) {
+      console.log('No query text to translate for frame:', frameId);
+      return;
+    }
+
+    setTranslatingFrameId(frameId);
+    try {
+      const result = await TranslationService.translateVietnameseToEnglish(frame.query);
+      updateFrame(frameId, 'query', result.translated_text);
+      console.log('Translation successful for frame:', frameId, result);
+    } catch (error) {
+      console.error('Translation failed for frame:', frameId, error);
+      // Optionally show error to user
+    } finally {
+      setTranslatingFrameId(null);
+    }
+  };
+
+  // Handle Ctrl+Enter keyboard shortcut and Ctrl+Shift+T for translation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === 'Enter') {
@@ -93,6 +116,15 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
         );
         if (hasContent && !searchState.isLoading) {
           onSearch(localFrames, localTopK);
+        }
+      }
+      
+      if (event.ctrlKey && event.shiftKey && event.key === 'T') {
+        event.preventDefault(); // Prevent browser default action
+        // Translate the first frame with content
+        const frameWithQuery = localFrames.find(frame => frame.query.trim());
+        if (frameWithQuery) {
+          handleTranslateFrame(frameWithQuery.id);
         }
       }
     };
@@ -178,7 +210,7 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
                   value={frame.query}
                   onChange={(e) => updateFrame(frame.id, 'query', e.target.value)}
                   placeholder="Describe what you see in this frame..."
-                  disabled={searchState.isLoading}
+                  disabled={searchState.isLoading || translatingFrameId === frame.id}
                   rows={2}
                   className="text-xs resize-none"
                 />
