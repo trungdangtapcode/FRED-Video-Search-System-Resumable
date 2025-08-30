@@ -332,7 +332,7 @@ const SubmissionsPage: React.FC = () => {
         frame_idx: frame.frame_idx,
         frame_path: '', // We'll generate this
         compressed_frame_path: '', // We'll generate this
-        fps: 25, // Default FPS
+        fps: frame.frame_idx/frame.timestamp, // Default FPS
       };
       
       openVideoPlayer(searchResult);

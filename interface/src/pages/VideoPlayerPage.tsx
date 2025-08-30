@@ -16,6 +16,7 @@ const VideoPlayerPage: React.FC = () => {
         const decodedData = decodeURIComponent(videoDataParam);
         const parsedData = JSON.parse(decodedData);
         setVideoData(parsedData);
+        console.log('Video data loaded:', parsedData);
       } catch (err) {
         setError('Failed to parse video data from URL');
         console.error('Error parsing video data:', err);
