@@ -13,6 +13,7 @@ ROOT DIR: `/root`
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 apt-get install nodejs -y
 ```
+
 ## Conda env
 
 ```
@@ -20,10 +21,12 @@ conda env create -f environments/faiss.yml
 conda env create -f environments/openclip.yml
 conda env create -f environments/static.yml
 conda env create -f environments/elasticsearch.yml
+conda env create -f environments/utils.yml
 ```
 
 ```
-docker run -d -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" 0370c61f362b  --name elasticsearch_hcmc
+docker pull elasticsearch:9.1.2
+docker run -d -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" elasticsearch:9.1.2  --name elasticsearch_hcmc
 docker start elasticsearch_hcmc
 ```
 
@@ -63,9 +66,16 @@ conda activate elasticsearch
 python run.py
 ```
 
-## Submit serever
+## Submit server
 ```
 cd hcmc/submit_server
+conda activate utils
+python run.py
+```
+
+## Translate server
+```
+cd hcmc/translate_server
 conda activate utils
 python run.py
 ```
