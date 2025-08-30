@@ -7,7 +7,7 @@ app = Flask(__name__)
 index_map = {}  # name -> faiss index
 dim_map = {}    # name -> dimension of index
 
-def load_index(name, path, use_gpu=True):
+def load_index(name, path, use_gpu=False):
     index = faiss.read_index(str(path))
     if use_gpu:
         res = faiss.StandardGpuResources()
@@ -84,5 +84,5 @@ def hello_word():
 if __name__ == "__main__":
     pass
     # Optional preload:
-    load_index("siglip2", "/root/data/embedding/siglip2.index")
+    load_index("siglip2", "/root/data/embedding/siglip2_batch1.index")
     app.run(host="0.0.0.0", port=5679, debug=True)

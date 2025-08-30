@@ -71,6 +71,51 @@ def retrieve_metadata_from_ocr(text: str, top_k: int = 5, return_scores: bool = 
 
     return [metadata[int(x['idx'])] for x in indexs]
 
+def retrieve_metadata_from_image(image_data, top_k: int = 5, return_scores: bool = False):
+    """
+    Retrieve similar frames using an uploaded image.
+    
+    Args:
+        image_data: Image data as bytes (from uploaded file)
+        top_k: Number of results to return
+        return_scores: Whether to return scores along with metadata
+    
+    Returns:
+        List of metadata entries or tuples with scores
+    """
+    try:
+        # Generate embedding for the uploaded image
+        image_embedding = image_embedder_instance.embed_single_image(image_data)
+        
+        # Convert to the format expected by retriever_client
+        import numpy as np
+        query_embeddings = np.array([image_embedding], dtype=np.float32)
+        
+        # Use retriever client to search (simulating text search structure)
+        import requests
+        payload = {
+            "model_name": 'siglip2',
+            "query_embeds": query_embeddings.tolist(),
+            "top_k": top_k
+        }
+        
+        resp = requests.post("http://localhost:5679/search", json=payload)
+        if resp.status_code == 200:
+            result = resp.json()
+            indices = result["indices"][0]  # First query results
+            scores = result["scores"][0]    # First query scores
+            
+            if return_scores:
+                return [(metadata[i], scores[j], i) for j, i in enumerate(indices)]
+            
+            return [metadata[i] for i in indices]
+        else:
+            raise RuntimeError(f"Retriever server error: {resp.text}")
+            
+    except Exception as e:
+        print(f"Error in image search: {e}")
+        raise e
+
 def hybrid_search(query, ocr, asr, top_k=5, normalize_scores=True):
     print("Hybrid search called with \n-query:", query, "\n-ocr:", ocr, "\n=asr:", asr)
     results = []
@@ -164,27 +209,14 @@ def multi_frame_search(frame_queries, top_k=5, normalize_scores=True):
         
         all_frame_results.append((frame_results, timestamp))
     
-    # Group results by video and combine scores for frames from the same video
-    video_scores = {}
+    # First, collect all individual frame results with their query index
+    all_individual_results = []
+    query_frame_results = {}  # track which videos appear in which queries
     
-    for frame_results, expected_timestamp in all_frame_results:
+    for query_idx, (frame_results, expected_timestamp) in enumerate(all_frame_results):
         for item, score, idx in frame_results:
             video_path = item.get('video_path', '')
             frame_timestamp = item.get('timestamp', 0)
-            
-            # Create a unique key for each video
-            if video_path not in video_scores:
-                video_scores[video_path] = {}
-            
-            # Add score for this frame, considering temporal proximity if timestamp is provided
-            frame_key = f"{video_path}_{idx}"
-            if frame_key not in video_scores[video_path]:
-                video_scores[video_path][frame_key] = {
-                    'item': item,
-                    'total_score': 0,
-                    'frame_count': 0,
-                    'timestamps': []
-                }
             
             # Weight score based on temporal proximity if timestamp is specified
             temporal_weight = 1.0
@@ -193,27 +225,57 @@ def multi_frame_search(frame_queries, top_k=5, normalize_scores=True):
                 # Reduce weight for frames that are far from expected timestamp (>30 seconds)
                 temporal_weight = max(0.1, 1.0 - (time_diff / 60.0))
             
-            video_scores[video_path][frame_key]['total_score'] += score * temporal_weight
-            video_scores[video_path][frame_key]['frame_count'] += 1
-            video_scores[video_path][frame_key]['timestamps'].append(frame_timestamp)
+            weighted_score = score * temporal_weight
+            
+            # Track which videos appear in each query
+            if video_path not in query_frame_results:
+                query_frame_results[video_path] = set()
+            query_frame_results[video_path].add(query_idx)
+            
+            all_individual_results.append({
+                'item': item,
+                'score': weighted_score,
+                'idx': idx,
+                'video_path': video_path,
+                'query_idx': query_idx
+            })
     
-    # Calculate final scores for each video by summing scores of all matching frames
+    # Calculate multi-query bonus for each video
+    video_multi_query_bonus = {}
+    for video_path, query_indices in query_frame_results.items():
+        num_queries_matched = len(query_indices)
+        total_queries = len(frame_queries)
+        
+        # Bonus grows exponentially with more matched queries
+        if num_queries_matched >= 2:
+            # Give significant bonus: 0.5 for 2 queries, 1.0 for 3 queries, etc.
+            bonus_multiplier = (num_queries_matched - 1) * 0.5
+            video_multi_query_bonus[video_path] = bonus_multiplier
+            print(f"Video {video_path} matches {num_queries_matched}/{total_queries} queries, bonus: {bonus_multiplier}")
+        else:
+            video_multi_query_bonus[video_path] = 0.0
+    
+    # Apply bonus to individual frame scores
     final_results = []
-    for video_path, frames in video_scores.items():
-        # Sum scores across all frames from this video
-        video_total_score = sum(frame_data['total_score'] for frame_data in frames.values())
-        frame_count = len(frames)
+    for result in all_individual_results:
+        video_path = result['video_path']
+        base_score = result['score']
         
-        # Bonus for videos that have matches for multiple queries
-        multi_frame_bonus = min(frame_count / len(frame_queries), 1.0) * 0.5
-        final_score = video_total_score + multi_frame_bonus
+        # Apply multi-query bonus
+        bonus_multiplier = video_multi_query_bonus.get(video_path, 0.0)
+        final_score = base_score * (1.0 + bonus_multiplier)
         
-        # Use the frame with highest individual score as representative
-        best_frame = max(frames.values(), key=lambda x: x['total_score'])
-        final_results.append((best_frame['item'], final_score))
+        final_results.append((result['item'], final_score))
+    
+    # Remove duplicates (same frame appearing in multiple queries) by keeping highest score
+    unique_results = {}
+    for item, score in final_results:
+        frame_key = f"{item.get('video_path', '')}_{item.get('frame_idx', '')}"
+        if frame_key not in unique_results or score > unique_results[frame_key][1]:
+            unique_results[frame_key] = (item, score)
     
     # Sort by combined score and return top results
-    sorted_results = sorted(final_results, key=lambda x: x[1], reverse=True)[:top_k]
+    sorted_results = sorted(unique_results.values(), key=lambda x: x[1], reverse=True)[:top_k]
     metadatas = [item for item, score in sorted_results]
     
     print(f"Multi-frame search completed: {len(metadatas)} results")

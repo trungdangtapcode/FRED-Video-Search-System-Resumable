@@ -26,7 +26,7 @@ export const useMultiFrameSearch = () => {
       asr: '',
       timestamp: 0
     }],
-    topK: 5,
+    topK: 100,
     isLoading: false,
     results: [],
     error: null,

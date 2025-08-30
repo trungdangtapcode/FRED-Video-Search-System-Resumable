@@ -4,7 +4,7 @@ import { SearchService } from '@/services/searchService';
 import { FrameTooltip } from '@/components/ui/frame-tooltip';
 import { groupResultsByVideo } from '@/utils/groupResults';
 import { openVideoPlayer } from '@/utils/videoUtils';
-import { submitFrame } from '@/services/submitService';
+import { SubmissionDialog } from '@/components/video/SubmissionDialog';
 import { Film } from 'lucide-react';
 
 interface ResultsGridProps {
@@ -20,11 +20,17 @@ const GroupedResultsView: React.FC<{
   framesPerRow: number;
   isSubmitMode: boolean;
   onFrameClick: (result: SearchResult) => void;
+  submissionDialogOpen: boolean;
+  selectedFrameForSubmission: SearchResult | null;
+  onCloseSubmissionDialog: () => void;
 }> = ({ 
   results, 
   framesPerRow,
   isSubmitMode,
-  onFrameClick
+  onFrameClick,
+  submissionDialogOpen,
+  selectedFrameForSubmission,
+  onCloseSubmissionDialog
 }) => {
   const groupedResults = groupResultsByVideo(results);
 
@@ -69,7 +75,7 @@ const GroupedResultsView: React.FC<{
                 r.video_path === result.video_path && r.frame_idx === result.frame_idx
               );
               return (
-                <div key={`${result.video_path}-${result.frame_idx}-${result.frame_idx}`}>
+                <div key={`${result.video_path}-${result.frame_idx}-${result.timestamp}`}>
                   <FrameTooltip frameData={result} frameIndex={globalIndex}>
                     <div 
                       className={`aspect-video bg-gray-200 hover:opacity-80 transition-opacity cursor-pointer ${
@@ -100,6 +106,15 @@ const GroupedResultsView: React.FC<{
           )}
         </div>
       ))}
+
+      {/* Submission Dialog */}
+      {selectedFrameForSubmission && (
+        <SubmissionDialog
+          isOpen={submissionDialogOpen}
+          onClose={onCloseSubmissionDialog}
+          videoData={selectedFrameForSubmission}
+        />
+      )}
     </div>
   );
 };
@@ -111,6 +126,8 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
   displayMode = 'all'
 }) => {
   const [isSubmitMode, setIsSubmitMode] = useState(false);
+  const [submissionDialogOpen, setSubmissionDialogOpen] = useState(false);
+  const [selectedFrameForSubmission, setSelectedFrameForSubmission] = useState<SearchResult | null>(null);
 
   // Handle "S" key for submit mode
   useEffect(() => {
@@ -147,34 +164,18 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
     console.log('Frame clicked. Submit mode:', isSubmitMode);
     
     if (isSubmitMode) {
-      console.log('In submit mode - showing prompt');
-      const question = prompt('Enter your question for this frame:');
-      
-      if (!question || question.trim() === '') {
-        console.log('User cancelled or entered empty question');
-        return; // User cancelled or entered empty question
-      }
-
-      // Optional answer prompt
-      const answer = prompt('Enter the answer (optional - press Cancel or leave empty to skip):');
-
-      try {
-        console.log('Submitting frame with question:', question, 'and answer:', answer);
-        await submitFrame(question.trim(), {
-          video_path: result.video_path,
-          timestamp: result.timestamp,
-          frame_idx: result.frame_idx,
-          answer: answer && answer.trim() ? answer.trim() : undefined,
-        });
-        alert('Frame submitted successfully!');
-      } catch (error) {
-        alert('Failed to submit frame. Please try again.');
-        console.error('Submit error:', error);
-      }
+      console.log('In submit mode - opening submission dialog');
+      setSelectedFrameForSubmission(result);
+      setSubmissionDialogOpen(true);
     } else {
       console.log('Not in submit mode - opening video player');
       openVideoPlayer(result);
     }
+  };
+
+  const handleCloseSubmissionDialog = () => {
+    setSubmissionDialogOpen(false);
+    setSelectedFrameForSubmission(null);
   };
   if (isLoading) {
     return (
@@ -200,6 +201,9 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
         framesPerRow={framesPerRow} 
         isSubmitMode={isSubmitMode}
         onFrameClick={handleFrameClick}
+        submissionDialogOpen={submissionDialogOpen}
+        selectedFrameForSubmission={selectedFrameForSubmission}
+        onCloseSubmissionDialog={handleCloseSubmissionDialog}
       />
     );
   }
@@ -227,7 +231,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
       )}
       <div className={getGridClass()}>
         {results.map((result, index) => (
-          <div key={`${result.video_path}-${result.frame_idx}`}>
+          <div key={`${result.video_path}-${result.frame_idx}-${result.frame_idx}-${result.timestamp}-${result.frame_path}`}>
             <FrameTooltip
               frameData={result}
               frameIndex={index}
@@ -258,6 +262,15 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Submission Dialog */}
+      {selectedFrameForSubmission && (
+        <SubmissionDialog
+          isOpen={submissionDialogOpen}
+          onClose={handleCloseSubmissionDialog}
+          videoData={selectedFrameForSubmission}
+        />
+      )}
     </div>
   );
 };

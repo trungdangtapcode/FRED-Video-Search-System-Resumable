@@ -91,6 +91,9 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
               disabled={searchState.isLoading}
               className="w-full text-sm min-h-[60px] resize-none text-xs leading-relaxed"
               rows={3}
+
+              autoComplete="on"
+              spellCheck={true}
             />
           </div>
 
@@ -107,6 +110,9 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
               disabled={searchState.isLoading}
               className="w-full text-sm min-h-[60px] resize-none text-xs leading-relaxed"
               rows={3}
+
+              autoComplete="on"
+              spellCheck={true}
             />
           </div>
 
@@ -123,6 +129,9 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
               disabled={searchState.isLoading}
               className="w-full text-sm min-h-[60px] resize-none text-xs leading-relaxed"
               rows={3}
+
+              autoComplete="on"
+              spellCheck={true}
             />
           </div>
 

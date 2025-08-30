@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import type { SearchResult } from "@/types"
 import { SearchService } from "@/services/searchService"
 import { Clock, Film, Hash, MapPin } from "lucide-react"
@@ -36,6 +36,15 @@ export const FrameTooltip: React.FC<FrameTooltipProps> = ({
       y: e.clientY - 10
     })
   }
+
+  useEffect(() => {
+    console.log('Frame Data:', frameData.fps.toFixed, frameData.fps)
+    
+    // make sure frameData have fps.toFixed function
+    if (typeof frameData.fps === 'number') {
+      frameData.fps = parseFloat(frameData.fps.toFixed(1))
+    }
+  }, [])
 
   const videoName = frameData.video_path.split('/').pop()?.replace('.mp4', '') || 'Unknown'
   const formattedTime = SearchService.formatTimestamp(frameData.timestamp)
@@ -87,7 +96,7 @@ export const FrameTooltip: React.FC<FrameTooltipProps> = ({
               </div>
               <div className="flex justify-between">
                 <span>FPS:</span>
-                <span className="text-white">{frameData.fps.toFixed(1)}</span>
+                <span className="text-white">{frameData.fps}</span>
               </div>
             </div>
             

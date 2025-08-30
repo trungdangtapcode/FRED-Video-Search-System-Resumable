@@ -271,11 +271,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           break;
         case 'ArrowLeft':
           event.preventDefault();
-          handleSeek([Math.max(0, currentTime - 10)]);
+          handleSeek([Math.max(0, currentTime - 5)]);
           break;
         case 'ArrowRight':
           event.preventDefault();
-          handleSeek([Math.min(duration, currentTime + 10)]);
+          handleSeek([Math.min(duration, currentTime + 5)]);
           break;
         case 'ArrowUp':
           event.preventDefault();

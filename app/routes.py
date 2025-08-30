@@ -3,6 +3,7 @@ from app.retriever_service import (
     retrieve_metadata_from_text,
     retrieve_metadata_from_ocr,
     retrieve_metadata_from_asr,
+    retrieve_metadata_from_image,
     hybrid_search,
     multi_frame_search
 )
@@ -143,6 +144,53 @@ def retrieve_multi_frame():
         return jsonify({"error": f"Invalid top_k value: {str(e)}"}), 400
     except Exception as e:
         print(f"Error in /retrieve_multi_frame: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        return jsonify({"error": str(e)}), 500
+
+"""
+Expected request structure for /retrieve_image endpoint:
+{
+    "image": <file upload>,           # Image file (multipart/form-data)
+    "top_k": "integer (optional)"    # Number of results to return (default: 5)
+}
+"""
+
+@main.route('/retrieve_image', methods=['POST'])
+def retrieve_image():
+    try:
+        # Check if image file is present
+        if 'image' not in request.files:
+            return jsonify({"error": "No image file provided"}), 400
+        
+        image_file = request.files['image']
+        
+        # Check if file is actually selected
+        if image_file.filename == '':
+            return jsonify({"error": "No image file selected"}), 400
+        
+        # Check if it's an image file
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
+        if not ('.' in image_file.filename and 
+                image_file.filename.rsplit('.', 1)[1].lower() in allowed_extensions):
+            return jsonify({"error": "Invalid image file type. Allowed: png, jpg, jpeg, gif, bmp, webp"}), 400
+        
+        # Get top_k parameter from form data
+        top_k = int(request.form.get("top_k", 5))
+        
+        # Read image data
+        image_data = image_file.read()
+        
+        # Perform image search
+        results = retrieve_metadata_from_image(image_data, top_k)
+        
+        return jsonify(results)
+
+    except ValueError as e:
+        return jsonify({"error": f"Invalid top_k value: {str(e)}"}), 400
+    except Exception as e:
+        print(f"Error in /retrieve_image: {e}")
         import traceback
         traceback.print_exc()
         

@@ -39,6 +39,39 @@ class ImageEmbedder:
                 images.append(None)
         return images
 
+    def embed_single_image(self, image_data):
+        """
+        Embed a single image from bytes data or PIL Image
+        
+        Args:
+            image_data: Either bytes (from uploaded file) or PIL Image
+            
+        Returns:
+            numpy array of image embedding
+        """
+        try:
+            # Handle different input types
+            if isinstance(image_data, bytes):
+                from io import BytesIO
+                img = Image.open(BytesIO(image_data)).convert("RGB")
+            elif isinstance(image_data, Image.Image):
+                img = image_data.convert("RGB")
+            else:
+                raise ValueError("image_data must be bytes or PIL Image")
+            
+            # Preprocess the image
+            img_tensor = self.preprocess(img).unsqueeze(0).to(self.device)
+            
+            # Generate embedding
+            with torch.no_grad(), torch.cuda.amp.autocast():
+                embedding = self.model.encode_image(img_tensor, normalize=True).cpu().numpy()
+            
+            return embedding[0]  # Return single embedding, not batch
+            
+        except Exception as e:
+            print(f"Failed to embed image: {e}")
+            raise e
+
     def embed_images_from_json(
         self,
         json_path: str,

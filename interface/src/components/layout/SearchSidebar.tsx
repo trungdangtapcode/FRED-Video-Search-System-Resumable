@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { UnifiedSearchBox } from '@/components/search/UnifiedSearchBox';
 import { MultiFrameSearchBox } from '@/components/search/MultiFrameSearchBox';
+import { ImageSearchBox } from '@/components/search/ImageSearchBox';
 import { useUnifiedSearch } from '@/hooks/useUnifiedSearch';
 import { useMultiFrameSearch } from '@/hooks/useMultiFrameSearch';
+import { useImageSearch } from '@/hooks/useImageSearch';
 import type { SearchType } from '@/types';
-import { Search, Layers } from 'lucide-react';
+import { Search, Layers, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface SearchSidebarProps {
@@ -15,7 +17,8 @@ interface SearchSidebarProps {
 export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, onSearchStart }) => {
   const { searchState, performSearch, clearResults } = useUnifiedSearch();
   const { searchState: multiFrameState, performSearch: performMultiFrameSearch, clearResults: clearMultiFrameResults } = useMultiFrameSearch();
-  const [searchMode, setSearchMode] = useState<'single' | 'multi'>('single');
+  const { searchState: imageSearchState, performSearch: performImageSearch, clearResults: clearImageResults } = useImageSearch();
+  const [searchMode, setSearchMode] = useState<'single' | 'multi' | 'image'>('single');
 
   const handleSearch = async (query: string, ocr: string, asr: string, topK: number) => {
     console.log('SearchSidebar: Starting unified search with:', { query, ocr, asr, topK });
@@ -31,15 +34,40 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
     onSearchStart?.();
     const results = await performMultiFrameSearch(frames, topK);
     console.log('SearchSidebar: Multi-frame search completed, got', results.length, 'results');
+    console.log('Sample results:', results);
+    // Make sure result in results have fps field
+    results.forEach((res, idx) => {
+      if (!res.fps) {
+        console.error(`Result at index ${idx} missing fps, setting default 25`);
+        res.fps = -1;
+      }
+    });
     // Use 'text' as the search type for compatibility with existing display logic
+    onSearchResults(results, 'text');
+  };
+
+  const handleImageSearch = async (imageFile: File, topK: number) => {
+    console.log('SearchSidebar: Starting image search with:', { fileName: imageFile.name, topK });
+    onSearchStart?.();
+    const results = await performImageSearch(imageFile, topK);
+    console.log('SearchSidebar: Image search completed, got', results.length, 'results');
+    // Set default fps for compatibility
+    results.forEach((res, idx) => {
+      if (!res.fps) {
+        console.log(`Result at index ${idx} missing fps, setting default 25`);
+        res.fps = 25;
+      }
+    });
     onSearchResults(results, 'text');
   };
 
   const handleClear = () => {
     if (searchMode === 'single') {
       clearResults();
-    } else {
+    } else if (searchMode === 'multi') {
       clearMultiFrameResults();
+    } else {
+      clearImageResults();
     }
     onSearchResults([], 'text');
   };
@@ -65,7 +93,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
               onClick={() => setSearchMode('single')}
             >
               <Search className="h-3 w-3 mr-1" />
-              Single
+              Text
             </Button>
             <Button
               variant={searchMode === 'multi' ? 'default' : 'ghost'}
@@ -75,6 +103,15 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
             >
               <Layers className="h-3 w-3 mr-1" />
               Multi
+            </Button>
+            <Button
+              variant={searchMode === 'image' ? 'default' : 'ghost'}
+              size="sm"
+              className="flex-1 h-7 text-xs"
+              onClick={() => setSearchMode('image')}
+            >
+              <Image className="h-3 w-3 mr-1" />
+              Image
             </Button>
           </div>
         </div>
@@ -87,11 +124,17 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
               onSearch={handleSearch}
               onClear={handleClear}
             />
-          ) : (
+          ) : searchMode === 'multi' ? (
             <MultiFrameSearchBox
               searchState={multiFrameState}
               onSearch={handleMultiFrameSearch}
               onClear={handleClear}
+            />
+          ) : (
+            <ImageSearchBox
+              onSearch={handleImageSearch}
+              onClear={handleClear}
+              isLoading={imageSearchState.isLoading}
             />
           )}
         </div>
@@ -109,7 +152,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
                 <p>• Results are sorted by similarity</p>
                 <p>• Maximum 500 results per search</p>
               </>
-            ) : (
+            ) : searchMode === 'multi' ? (
               <>
                 <p>• <strong>Multi-Frame:</strong> Describe 2-3 frames from the same video</p>
                 <p>• <strong>Timestamps:</strong> Specify expected timing for each frame</p>
@@ -117,6 +160,15 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
                 <p>• <strong>Temporal Weighting:</strong> Closer timestamps get higher scores</p>
                 <p>• At least one frame must have content</p>
                 <p>• Maximum 3 frames per search</p>
+              </>
+            ) : (
+              <>
+                <p>• <strong>Image Search:</strong> Upload an image to find similar frames</p>
+                <p>• <strong>Visual Similarity:</strong> Uses computer vision to match content</p>
+                <p>• <strong>Supported Formats:</strong> PNG, JPG, JPEG, GIF, BMP, WEBP</p>
+                <p>• <strong>File Size:</strong> Maximum 10MB per image</p>
+                <p>• <strong>AI Matching:</strong> Finds visually similar scenes and objects</p>
+                <p>• Results ranked by visual similarity score</p>
               </>
             )}
           </div>
