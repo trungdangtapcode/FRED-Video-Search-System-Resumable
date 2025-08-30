@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +47,24 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
     setLocalTopK(DEFAULT_VALUES.TOP_K);
     onClear();
   };
+
+  // Handle Ctrl+Enter keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'Enter') {
+        event.preventDefault();
+        const hasContent = localQuery.trim() || localOcr.trim() || localAsr.trim();
+        if (hasContent && !searchState.isLoading) {
+          onSearch(localQuery.trim(), localOcr.trim(), localAsr.trim(), localTopK);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [localQuery, localOcr, localAsr, localTopK, searchState.isLoading, onSearch]);
 
   const hasContent = localQuery.trim() || localOcr.trim() || localAsr.trim();
 
@@ -132,6 +150,7 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
               disabled={!hasContent || searchState.isLoading}
               className="flex-1 h-6 text-xs bg-blue-600 hover:bg-blue-700 text-white"
               size="sm"
+              title="Search (Ctrl+Enter)"
             >
               {searchState.isLoading ? (
                 <>

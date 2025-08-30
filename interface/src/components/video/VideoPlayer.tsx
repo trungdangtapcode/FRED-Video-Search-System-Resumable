@@ -128,8 +128,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (!video) {
       return;
     }
+    
 
-    if (isPlaying) {
+    // if (isPlaying) {
+    if (!!(video && !video.paused && !video.ended && video.readyState > 2)) {
       video.pause();
       setIsPlaying(false);
     } else {

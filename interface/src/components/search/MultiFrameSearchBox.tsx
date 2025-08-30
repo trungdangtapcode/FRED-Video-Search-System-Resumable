@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,6 +82,26 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
     setLocalTopK(DEFAULT_VALUES.TOP_K);
     onClear();
   };
+
+  // Handle Ctrl+Enter keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'Enter') {
+        event.preventDefault();
+        const hasContent = localFrames.some(frame => 
+          frame.query.trim() || frame.ocr.trim() || frame.asr.trim()
+        );
+        if (hasContent && !searchState.isLoading) {
+          onSearch(localFrames, localTopK);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [localFrames, localTopK, searchState.isLoading, onSearch]);
 
   const hasContent = localFrames.some(frame => 
     frame.query.trim() || frame.ocr.trim() || frame.asr.trim()
@@ -216,6 +236,7 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
               type="submit"
               disabled={!hasContent || searchState.isLoading}
               className="flex-1 h-8 text-xs min-w-0"
+              title="Multi Search (Ctrl+Enter)"
             >
               {searchState.isLoading ? (
                 <>

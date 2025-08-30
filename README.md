@@ -69,3 +69,7 @@ cd hcmc/submit_server
 conda activate utils
 python run.py
 ```
+
+cd hcmc/submission
+rm  submission.zip && zip -r submission.zip submission
+cd ../..
