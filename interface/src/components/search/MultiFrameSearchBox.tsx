@@ -119,7 +119,7 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
         }
       }
       
-      if (event.ctrlKey && event.key === 'Q') {
+      if (event.ctrlKey && (event.key === 'Q' || event.key === 'q')){
         event.preventDefault(); // Prevent browser default action
         // Translate the first frame with content
         const frameWithQuery = localFrames.find(frame => frame.query.trim());

@@ -11,16 +11,11 @@ def process_json_to_csv(json_data, output_dir="submission"):
     """
     Convert JSON data to CSV files in the specified format
     """
-    # If exist remove
-    if os.path.exists(output_dir):
-        import shutil
-        shutil.rmtree(output_dir)
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
     
     # Group trake questions by prefix
     trake_groups = defaultdict(list)
-    
     
     for question, entries in json_data.items():
         if "trake" in question:
@@ -51,22 +46,25 @@ def process_json_to_csv(json_data, output_dir="submission"):
         # Sort questions by their suffix (the part after "trake")
         question_entries.sort(key=lambda x: x[0].split("trake")[1] if x[0].split("trake")[1] else "")
         
-        # Group by video_path to create rows
-        video_data = defaultdict(list)
-        
-        for question, entries in question_entries:
-            for entry in entries:
-                video_id = extract_video_id(entry["video_path"])
-                video_data[video_id].append(entry["frame_idx"])
-        
         # Write to CSV
         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
-            for video_id, frame_indices in video_data.items():
-                # Sort frame indices for consistent output
-                frame_indices.sort()
-                writer.writerow([video_id] + frame_indices)
-
+            
+            # Process each trake question separately
+            for question, entries in question_entries:
+                # Group entries by video_path for this specific question
+                video_data = defaultdict(list)
+                
+                for entry in entries:
+                    video_id = extract_video_id(entry["video_path"])
+                    video_data[video_id].append(entry["frame_idx"])
+                
+                # Write one row per video for this specific trake question
+                for video_id, frame_indices in video_data.items():
+                    # Sort frame indices for consistent output
+                    frame_indices.sort()
+                    writer.writerow([video_id] + frame_indices)
+                    
 def convert_json_to_csv(json_file_path, output_dir="submission"):
     """
     Main function to convert JSON file to CSV files

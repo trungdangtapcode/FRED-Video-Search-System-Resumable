@@ -41,8 +41,9 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
     // Make sure result in results have fps field
     results.forEach((res, idx) => {
       if (!res.fps) {
-        console.error(`Result at index ${idx} missing fps, setting default 25`);
-        res.fps = -1;
+        console.error(`Result at index ${idx} missing fps, setting default -1`);
+
+        res.fps = 25;
       }
     });
     // Use 'text' as the search type for compatibility with existing display logic
@@ -58,7 +59,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
     // Set default fps for compatibility
     results.forEach((res, idx) => {
       if (!res.fps) {
-        console.log(`Result at index ${idx} missing fps, setting default 25`);
+        console.error(`Result at index ${idx} missing fps, setting default -1`);
         res.fps = 25;
       }
     });

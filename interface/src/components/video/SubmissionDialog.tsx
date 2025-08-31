@@ -32,6 +32,10 @@ export const SubmissionDialog: React.FC<SubmissionDialogProps> = ({
   const frameIndex = Math.floor(frameTime * fps);
 
   const handleSubmit = async () => {
+    if (fps==-1){
+      new Error('FPS is not provided for submission' );
+      console.error('FPS is not provided for submission');
+    }
     if (!question.trim()) {
       setSubmitStatus({
         type: 'error',

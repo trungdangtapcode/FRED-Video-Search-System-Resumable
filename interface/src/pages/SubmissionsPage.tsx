@@ -403,7 +403,9 @@ const SubmissionsPage: React.FC = () => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-        {submissions.map((group) => (
+        {submissions.sort((a, b) =>
+  a.question.localeCompare(b.question)
+).map((group) => (
           <div key={group.question} className="bg-white rounded-lg shadow-sm border p-6">
             {/* Question Header */}
             <div className="mb-6">

@@ -81,8 +81,8 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
         }
       }
       
-      // console.log('Key pressed:', event.key, 'Ctrl:', event.ctrlKey, 'Shift:', event.shiftKey, 'Alt:', event.altKey);
-      if (event.ctrlKey && event.key === 'Q') {
+      console.log('Key pressed:', event.key, 'Ctrl:', event.ctrlKey, 'Shift:', event.shiftKey, 'Alt:', event.altKey);
+      if (event.ctrlKey && (event.key === 'Q' || event.key === 'q')) {
         event.preventDefault(); // Prevent browser default action
         handleTranslateQuery();
       }
