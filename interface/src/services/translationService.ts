@@ -3,7 +3,9 @@
  * Handles communication with the Google Translate server
  */
 
-const TRANSLATE_BASE_URL = 'http://38.29.145.80:5002';
+import {API_ENDPOINTS}from '@/constants';
+
+const { TRANSLATE_BASE_URL } = API_ENDPOINTS;
 
 export interface TranslationRequest {
   text: string;

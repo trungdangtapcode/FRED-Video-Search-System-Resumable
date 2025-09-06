@@ -37,6 +37,41 @@ def concat_json_arrays(path, output_path=None):
     
     return combined
 
+def concat_json_arrays_paths(file_paths, output_path=None):
+    """
+    Concatenate JSON arrays from a list of file paths.
+    
+    Args:
+        file_paths (list): List of file paths to JSON files.
+    
+    Returns:
+        list: Combined JSON array.
+    """
+    combined = []
+
+    for file_path in file_paths:
+        
+        if not os.path.exists(file_path):
+            print(f"⚠️ Skipping missing file: {file_path}")
+            continue
+        
+        with open(file_path, "r", encoding="utf-8") as f:
+            try:
+                data = json.load(f)
+                if isinstance(data, list):
+                    combined.extend(data)
+                else:
+                    print(f"⚠️ File {file_path} does not contain a JSON array.")
+            except json.JSONDecodeError as e:
+                print(f"❌ Error decoding {file_path}: {e}")
+    
+    if output_path:
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(combined, f, indent=4)
+        print(f"✅ Combined JSON saved to {output_path}")
+    
+    return combined
+
 def update_frame_metadata_compressed(json_path):
     with open(json_path, "r") as f:
         frame_metadata = json.load(f)
@@ -50,5 +85,5 @@ def update_frame_metadata_compressed(json_path):
     with open(json_path2, "w") as f:
         json.dump(frame_metadata, f)
 
-
-concat_json_arrays("/root/data", "/root/data/frame_metadata.json")
+concat_json_arrays_paths(["/data/root/data/frames_metadata.json","/data/root/data/frame_metadata_batch2.json"], "/data/root/data/frames_metadata_v2.json")
+# concat_json_arrays("/root/data", "/root/data/frame_metadata.json")

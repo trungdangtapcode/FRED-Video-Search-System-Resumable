@@ -6,7 +6,7 @@ import uvicorn
 
 app = FastAPI()
 
-
+ROOT_DIR = "/data/root"
 
 # --- CORS settings ---
 app.add_middleware(
@@ -36,7 +36,7 @@ class CORSEnabledStaticFiles(StaticFiles):
 
 app.mount(
     "/",
-    CORSEnabledStaticFiles(directory="/root", html=True, follow_symlink=True),
+    CORSEnabledStaticFiles(directory=ROOT_DIR, html=True, follow_symlink=True),
     name="static",
 )
 

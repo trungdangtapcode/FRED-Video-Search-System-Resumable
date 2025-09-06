@@ -28,7 +28,7 @@ def retrieve_metadata_from_text(text: str, top_k: int = 5, return_scores: bool =
         top_k=top_k
     )
     idx = indexs[0][0]
-    # print("Retrieved indices:", indexs)
+    print("Retrieved indices:", indexs)
     
     if return_scores:
         scores = indexs[1][0]

@@ -5,8 +5,8 @@ import { FrameTooltip } from '@/components/ui/frame-tooltip';
 import { groupResultsByVideo } from '@/utils/groupResults';
 import { openVideoPlayer } from '@/utils/videoUtils';
 import { SubmissionDialog } from '@/components/video/SubmissionDialog';
-import { API_ENDPOINTS } from '@/constants';
 import { Film } from 'lucide-react';
+import { API_ENDPOINTS } from '@/constants';
 
 interface ResultsGridProps {
   results: SearchResult[];
@@ -145,7 +145,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
     }
 
     try {
-      const response = await fetch('http://38.29.145.80:5000/retrieve_similar_frames', {
+      const response = await fetch(`${API_ENDPOINTS.SEARCH_BASE_URL}/retrieve_similar_frames`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -308,8 +308,9 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
                 }`}
                 onClick={() => handleFrameClick(result)}
               >
+                {/* Change this to compressed URL if you want to save bandwidth */}
                 <img
-                  src={SearchService.getImageUrl(result.compressed_frame_path)}
+                  src={SearchService.getImageUrl(result.frame_path)} 
                   alt={`Frame ${index + 1}`}
                   className="w-full h-full object-cover"
                   loading="lazy"

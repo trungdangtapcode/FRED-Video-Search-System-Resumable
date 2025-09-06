@@ -87,7 +87,7 @@ def init_elasticsearch(json_path, index_name="asr_index", keyname="asr"):
 
  
 if __name__ == "__main__":
-    asr_json_path = "/root/data/frame_asr.json"
+    asr_json_path = "/data/root/data/frame_asr.json"
     init_elasticsearch(asr_json_path)
  
     

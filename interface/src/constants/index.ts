@@ -1,8 +1,10 @@
 // API endpoints
 export const API_ENDPOINTS = {
-  SEARCH: 'http://38.29.145.80:5000/retrieve',
-  STATIC_SERVER: 'http://38.29.145.80:8069',
-  SUBMIT_SERVER: 'http://38.29.145.80:5001',
+  SEARCH: 'http://103.155.161.183:5000/retrieve',
+  STATIC_SERVER: 'http://103.155.161.183:8069',
+  SUBMIT_SERVER: 'http://103.155.161.183:5001',
+  TRANSLATE_BASE_URL: 'http://103.155.161.183:5002',
+  SEARCH_BASE_URL: 'http://103.155.161.183:5000'
 } as const;
 
 // Default values
@@ -34,4 +36,4 @@ export const SEARCH_TYPES = {
 } as const;
 
 
-export const ROOT_DIR = "/root"
+export const ROOT_DIR = "/data/root"

@@ -7,4 +7,4 @@ app = create_app()
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)  # or INFO
     CORS(app, resources={r"/*": {"origins": "*"}})
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)

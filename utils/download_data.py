@@ -32,7 +32,7 @@ def download_file(args):
     except Exception as e:
         return f"❌ Failed {url}: {e}"
 
-def download_from_txt(txt_path="/root/data/urls.txt", pos_begin=None, pos_end=None, max_workers=4):
+def download_from_txt(txt_path="/data/root/data/urls.txt", pos_begin=None, pos_end=None, max_workers=4):
     with open(txt_path, "r") as f:
         urls = [line.strip() for line in f if line.strip()]
 
@@ -41,7 +41,7 @@ def download_from_txt(txt_path="/root/data/urls.txt", pos_begin=None, pos_end=No
         urls = urls[pos_begin:pos_end]
 
     args_list = [
-        (url, "/root/data/downloads", i, 1024 * 1024)
+        (url, "/data/root/data/downloads", i, 1024 * 1024)
         for i, url in enumerate(urls)
     ]
 

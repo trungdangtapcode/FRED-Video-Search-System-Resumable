@@ -18,7 +18,7 @@ def load_index(name, path, use_gpu=False):
     index_map[name] = index
     dim_map[name] = index.d
 
-def load_dinov3_index(path="/root/data/embedding/dinov3_batch1_normalized.index"):
+def load_dinov3_index(path="/data/root/data/embeddings_dinov3_v2.index"):
     """Load DINOv3 FAISS index directly"""
     try:
         load_index("dinov3", path, use_gpu=False)
@@ -41,6 +41,8 @@ def search():
 
     index = index_map[name]
     scores, indices = index.search(query_embeds, top_k)
+    print("indices: ", indices)
+    print("num of vector in db: ", index.ntotal)
     return jsonify({
         "indices": indices.tolist(),
         "scores": scores.tolist()
@@ -147,9 +149,9 @@ def hello_word():
 
 if __name__ == "__main__":
     # Optional preload:
-    load_index("siglip2", "/root/data/embedding/siglip2_batch1.index")
+    load_index("siglip2", "/data/root/data/embeddings_siglip_v2.index")
     
     # Load DINOv3 index
-    load_dinov3_index()
+    # load_dinov3_index()
     
     app.run(host="0.0.0.0", port=5679, debug=True)

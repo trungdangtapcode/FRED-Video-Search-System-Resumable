@@ -30,44 +30,47 @@ docker pull elasticsearch:9.1.2
 docker run -d -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" elasticsearch:9.1.2  --name elasticsearch_hcmc
 docker start elasticsearch_hcmc
 ```
+```
+docker run -d \ --name elasticsearch_hcmc \ -p 9200:9200 \ -e "discovery.type=single-node" \ -e "xpack.security.enabled=false" \ elasticsearch:9.1.2
+```
 
 # CMD
 
-## UI
+## UI (4 const)
 ```
 cd hcmc/interface
 npm run dev
 ```
 
-## Static server
+## Static server (1 const)
 ```
 cd hcmc
 conda activate static
 uvicorn static_server.run:app --host 0.0.0.0 --port 8069 --reload
 ```
 
-## Faiss server
+## Faiss server (2 const)
 ```
 cd hcmc
 conda activate faiss
 python3 embedding/retriever_server.py
 ```
 
-## Backend server
+## Backend server (1 const)
 ```
 cd hcmc
 conda activate openclip
 python3 run.py
 ```
 
-## Text seach
+## Text seach (1 const)
 ```
 cd hcmc/text_search
 conda activate elasticsearch
 python run.py
 ```
 
-## Submit server
+## Submit server (2 const)
 ```
 cd hcmc/submit_server
 conda activate utils

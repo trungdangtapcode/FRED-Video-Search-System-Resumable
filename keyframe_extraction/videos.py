@@ -49,14 +49,16 @@ def extract_videos(input_folder, output_folder, pos_begin=None, pos_end=None, in
             all_metadata.extend(meta)
         return all_metadata
 
+# os.environ["OPENCV_FFMPEG_BINARY"] = "/usr/bin/ffmpeg"  # Adjust to your FFmpeg path (run `which ffmpeg`)
+# os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "hwaccel;none;video_codec;libdav1d"  # Force software decoding with libdav1d
 
 import json
 if __name__ == "__main__":
     # Example: extract frames every 2s, process up to 4 videos in parallel
-    x = 8
+    x = 0
     length = 100
     
-    frame_metadata = extract_videos("/root/data/unzipped/video", "/root/data/extracted_keyframes", interval=2, max_workers=1
-        , pos_begin=x*length, pos_end=(x+1)*length)
-    with open(f"/root/data/frame_metadata{x}.json", "w") as f:
+    frame_metadata = extract_videos("/data/root/data/unzipped/video", "/data/root/data/extracted_keyframes", interval=2, max_workers=1
+        , pos_begin=x*length+3, pos_end=(x+1)*length)
+    with open(f"/data/root/data/frame_metadata{x}.json", "w") as f:
         json.dump(frame_metadata, f, indent=4)
