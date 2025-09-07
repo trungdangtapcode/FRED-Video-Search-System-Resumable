@@ -80,7 +80,7 @@ if __name__ == "__main__":
     # np.save("/root/data/embedding/dinov3/dinov3_batch1_normalized.npy", normalized_embeddings)
     # convert_numpy_to_faiss_index("/root/data/embedding/dinov3/dinov3_batch1_normalized.npy",
     #                 "/root/data/embedding/dinov3_batch1_normalized.index", type='dot')
-    # convert_numpy_to_faiss_index("/data/root/data/embedding/embeddings_dinov3_v2.npy",
-    #                 "/data/root/data/embeddings_dinov3_v2.index", type='dot')
-    convert_numpy_to_faiss_index("/data/root/data/embedding/embeddings_siglip_v2.npy",
-                    "/data/root/data/embeddings_siglip_v2.index", type='dot')
+    convert_numpy_to_faiss_index("/data/root/data/embedding/embeddings_dinov3_v2.npy",
+                    "/data/root/data/embeddings_dinov3_v2.index", type='dot')
+    # convert_numpy_to_faiss_index("/data/root/data/embedding/embeddings_siglip_v2.npy",
+    #                 "/data/root/data/embeddings_siglip_v2.index", type='dot')

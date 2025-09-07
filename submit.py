@@ -3,9 +3,36 @@ import os
 import csv
 from collections import defaultdict
 
+FPS_PATH = "/data/root/data/fps_dict_v2.json"
+
+with open(FPS_PATH, "r") as f:
+    fps_dict = json.load(f)
+
+
 def extract_video_id(video_path):
     """Extract video ID from video path"""
     return video_path.split("/")[-1].split(".")[0]
+
+
+def get_frame_idx(entry):
+    idx = entry["frame_idx"]
+    if (idx>=0):
+        if "timestamp" in entry and entry["timestamp"] is not None:
+            video_id = extract_video_id(entry["video_path"])
+            fps = fps_dict.get(video_id, None)
+            if fps is not None:
+                calculated_idx = round(fps * entry["timestamp"])
+                if abs(calculated_idx - idx) > 2:
+                    print(f"⚠️ Warning: frame_idx {idx} does not match calculated {calculated_idx} for video {video_id} at timestamp {entry['timestamp']}")
+        return idx
+    video_id = extract_video_id(entry["video_path"])
+    fps = fps_dict.get(video_id, None)
+    timestamp = entry["timestamp"]
+    if fps is None or timestamp is None:
+        raise ValueError(f"Cannot determine frame_idx for entry: {entry}")
+    print(f"⚠️ Warning: frame_idx missing or negative for entry {entry}, calculating from timestamp {timestamp} and fps {fps}")
+    idx = round(fps * timestamp)
+    return idx
 
 def process_json_to_csv(json_data, output_dir="submission"):
     """
@@ -29,7 +56,7 @@ def process_json_to_csv(json_data, output_dir="submission"):
                 writer = csv.writer(f)
                 for entry in entries:
                     video_id = extract_video_id(entry["video_path"])
-                    writer.writerow([video_id, entry["frame_idx"]])
+                    writer.writerow([video_id, get_frame_idx(entry)])
         elif "qa" in question:
             # Handle qa questions - output video_id, frame_idx, answer
             csv_path = os.path.join(output_dir, f"{question}.csv")
@@ -37,7 +64,7 @@ def process_json_to_csv(json_data, output_dir="submission"):
                 writer = csv.writer(f)
                 for entry in entries:
                     video_id = extract_video_id(entry["video_path"])
-                    writer.writerow([video_id, entry["frame_idx"], entry["answer"]])
+                    writer.writerow([video_id, get_frame_idx(entry), entry["answer"]])
     
     # Handle trake questions
     for prefix, question_entries in trake_groups.items():
@@ -57,7 +84,8 @@ def process_json_to_csv(json_data, output_dir="submission"):
                 
                 for entry in entries:
                     video_id = extract_video_id(entry["video_path"])
-                    video_data[video_id].append(entry["frame_idx"])
+
+                    video_data[video_id].append(get_frame_idx(entry))
                 
                 # Write one row per video for this specific trake question
                 for video_id, frame_indices in video_data.items():
@@ -176,7 +204,7 @@ def main():
     convert_json_to_csv("example_data.json")
 
 # Legacy function for backward compatibility
-def process_json_file(json_file_path="/root/hcmc/submit_server/submissions.json", output_dir="submission/submission"):
+def process_json_file(json_file_path="/data/root/hcmc/submit_server/submissions.json", output_dir="submission/submission"):
     """
     Legacy function - use convert_json_to_csv instead
     """

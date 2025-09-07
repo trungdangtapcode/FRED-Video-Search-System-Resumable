@@ -254,7 +254,12 @@ def get_stats():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+    
+from flask import request, jsonify, send_file
+from io import BytesIO
+import os
+import imageio.v3 as iio
+import numpy as np
 @app.route('/extract_frame', methods=['GET'])
 def extract_frame():
     """Extract frame from video at specific timestamp"""
