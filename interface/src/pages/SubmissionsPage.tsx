@@ -28,6 +28,7 @@ const FrameImage: React.FC<{
 
         // Remove ROOT_DIR from video path before sending to backend
         const relativePath = frame.video_path.replace(ROOT_DIR, '');
+        // alert('Relative path: ' + frame.video_path);
         
         // Use backend extract_frame endpoint instead of client-side extraction
         const extractUrl = `${API_ENDPOINTS.SUBMIT_SERVER}/extract_frame?video_path=${encodeURIComponent(relativePath)}&timestamp=${frame.timestamp}`;

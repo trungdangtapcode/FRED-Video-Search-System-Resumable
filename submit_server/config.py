@@ -1,1 +1,1 @@
-ROOT_DIR = '/root/'
+ROOT_DIR = '/data/root/'

@@ -44,6 +44,8 @@ class SubmissionService {
         video_path: data.video_path.replace(ROOT_DIR, '')
       };
 
+      alert(submissionData.video_path);
+
       const response = await fetch(`${this.baseUrl}/submit`, {
         method: 'POST',
         headers: {

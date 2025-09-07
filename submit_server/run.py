@@ -17,7 +17,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Configuration
-SUBMISSIONS_FILE = '/root/hcmc/submit_server/submissions.json'
+SUBMISSIONS_FILE = '/data/root/hcmc/submit_server/submissions.json'
 PORT = 5001
 
 def load_submissions():

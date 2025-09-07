@@ -43,7 +43,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
       if (!res.fps) {
         console.error(`Result at index ${idx} missing fps, setting default -1`);
 
-        res.fps = 25;
+        res.fps = -1;
       }
     });
     // Use 'text' as the search type for compatibility with existing display logic
@@ -60,7 +60,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
     results.forEach((res, idx) => {
       if (!res.fps) {
         console.error(`Result at index ${idx} missing fps, setting default -1`);
-        res.fps = 25;
+        res.fps = -1;
       }
     });
     onSearchResults(results, 'text');

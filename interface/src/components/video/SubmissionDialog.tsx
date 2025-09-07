@@ -17,7 +17,7 @@ export const SubmissionDialog: React.FC<SubmissionDialogProps> = ({
   onClose,
   videoData,
   currentTime,
-  fps = 25
+  fps = -1
 }) => {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
