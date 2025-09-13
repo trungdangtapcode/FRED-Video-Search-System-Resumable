@@ -258,7 +258,7 @@ def get_stats():
 from flask import request, jsonify, send_file
 from io import BytesIO
 import os
-import imageio.v3 as iio
+# import imageio.v3 as iio
 import numpy as np
 @app.route('/extract_frame', methods=['GET'])
 def extract_frame():

@@ -15,6 +15,26 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 apt-get install nodejs -y
 ```
 
+## Create screen
+
+### Clear existing screen
+```bash
+killall screen
+screen
+```
+
+### Create screen
+
+```bash
+screen -S ui
+screen -S static
+screen -S faiss
+screen -S backend
+screen -S textsearch
+screen -S submit
+screen -S translate
+```
+
 ## Conda env
 
 ```
@@ -26,24 +46,28 @@ conda env create -f environments/utils.yml
 ```
 
 ```
+apt install docker.io
 docker pull elasticsearch:9.1.2
 docker run -d -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" elasticsearch:9.1.2  --name elasticsearch_hcmc
 docker start elasticsearch_hcmc
 ```
 ```
 docker run -d \ --name elasticsearch_hcmc \ -p 9200:9200 \ -e "discovery.type=single-node" \ -e "xpack.security.enabled=false" \ elasticsearch:9.1.2
+docker run -d --name elasticsearch_hcmc -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" elasticsearch:9.1.2
 ```
 
 # CMD
 
 ## UI (4 const)
 ```
+screen -r ui
 cd hcmc/interface
 npm run dev
 ```
 
 ## Static server (1 const)
 ```
+screen -r static
 cd hcmc
 conda activate static
 uvicorn static_server.run:app --host 0.0.0.0 --port 8069 --reload
@@ -51,6 +75,7 @@ uvicorn static_server.run:app --host 0.0.0.0 --port 8069 --reload
 
 ## Faiss server (2 const)
 ```
+screen -r faiss
 cd hcmc
 conda activate faiss
 python3 embedding/retriever_server.py
@@ -58,6 +83,7 @@ python3 embedding/retriever_server.py
 
 ## Backend server (1 const)
 ```
+screen -r backend
 cd hcmc
 conda activate openclip
 python3 run.py
@@ -65,6 +91,7 @@ python3 run.py
 
 ## Text seach (1 const)
 ```
+screen -r textsearch
 cd hcmc/text_search
 conda activate elasticsearch
 python run.py
@@ -72,6 +99,7 @@ python run.py
 
 ## Submit server (2 const)
 ```
+screen -r submit
 cd hcmc/submit_server
 conda activate utils
 python run.py
@@ -79,6 +107,7 @@ python run.py
 
 ## Translate server
 ```
+screen -r translate
 cd hcmc/translate_server
 conda activate utils
 python run.py

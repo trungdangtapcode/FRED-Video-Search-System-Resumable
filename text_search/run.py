@@ -16,7 +16,7 @@ def initialize_all_indexes():
     # Define indexes to create
     indexes_config = [
         {
-            "json_path": "/data/root/data/frame_asr.json",
+            "json_path": "/data/root/data/frame_asr_v3.json",
             "index_name": "asr_index",
             "keyname": "asr"
         },
@@ -134,4 +134,4 @@ if __name__ == '__main__':
     
     # Start Flask server
     print("Starting Flask server on 0.0.0.0:9201...")
-    app.run(host='0.0.0.0', port=9201, debug=True)
+    app.run(host='0.0.0.0', port=9201, debug=False)
