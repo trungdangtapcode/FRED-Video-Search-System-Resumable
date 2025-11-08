@@ -149,9 +149,10 @@ def hello_word():
 
 if __name__ == "__main__":
     # Optional preload:
-    load_index("siglip2", "/data/root/data/embeddings_siglip_v2.index")
+    # load_index("siglip2", "/data/root/data/embeddings_siglip_v2.index")
+    load_index("siglip2", "/root/embeddings_siglip_v2.index")
     
     # Load DINOv3 index
     # load_dinov3_index()
     
-    app.run(host="0.0.0.0", port=5679, debug=True)
+    app.run(host="0.0.0.0", port=50239, debug=True)

@@ -55,10 +55,13 @@ def extract_videos(input_folder, output_folder, pos_begin=None, pos_end=None, in
 import json
 if __name__ == "__main__":
     # Example: extract frames every 2s, process up to 4 videos in parallel
-    x = 0
-    length = 100
+    # conda activate utils && cd hcmc && python -m keyframe_extraction.videos
+    x = 2
+    length = 300
+    offset = 605
     
-    frame_metadata = extract_videos("/data/root/data/unzipped/video", "/data/root/data/extracted_keyframes", interval=2, max_workers=1
-        , pos_begin=x*length+3, pos_end=(x+1)*length)
-    with open(f"/data/root/data/frame_metadata{x}.json", "w") as f:
+
+    frame_metadata = extract_videos("/root/src/data/unzipped/video", "/root/src/data/extracted_keyframes", interval=2, max_workers=1
+        , pos_begin=x*length+offset, pos_end=(x+1)*length+offset)
+    with open(f"/root/src/data/frame_metadata{x}.json", "w") as f:
         json.dump(frame_metadata, f, indent=4)

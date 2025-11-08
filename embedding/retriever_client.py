@@ -15,6 +15,8 @@ class RetrieverClient:
             "top_k": top_k
         }
 
+        # print('query sent to:', self.server_url)
+        # print('payload:', payload)
         resp = requests.post(f"{self.server_url}/search", json=payload)
         if resp.status_code == 200:
             result = resp.json()

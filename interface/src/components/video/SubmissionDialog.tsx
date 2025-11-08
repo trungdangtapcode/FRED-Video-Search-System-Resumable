@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Send, X } from 'lucide-react';
 import { submissionService, type SubmissionData } from '@/services/submissionService';
 import type { SearchResult } from '@/types';
+import { DIRECTLY_DEFAULT } from '@/constants';
+import { useToast } from '@/hooks/useToast';
 
 interface SubmissionDialogProps {
   isOpen: boolean;
@@ -19,13 +21,15 @@ export const SubmissionDialog: React.FC<SubmissionDialogProps> = ({
   currentTime,
   fps = -1
 }) => {
-  const [question, setQuestion] = useState('');
+  const [question, setQuestion] = useState('.');
   const [answer, setAnswer] = useState('');
+  const [submitDirectly, setSubmitDirectly] = useState(DIRECTLY_DEFAULT);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     type: 'success' | 'error' | null;
     message: string;
   }>({ type: null, message: '' });
+  const { showToast } = useToast();
 
   // Use provided currentTime or fallback to videoData timestamp
   const frameTime = currentTime ?? videoData.timestamp;
@@ -53,10 +57,22 @@ export const SubmissionDialog: React.FC<SubmissionDialogProps> = ({
         answer: answer.trim() || undefined, // Only include if not empty
         video_path: videoData.video_path,
         timestamp: frameTime,
-        frame_idx: frameIndex
+        frame_idx: frameIndex,
+        submit_directly: submitDirectly  // Include the checkbox value
       };
 
       const response = await submissionService.submitQuestion(submissionData);
+      
+      // Show competition result if submitted directly
+      if (submitDirectly && response.competition_result) {
+        const compResult = response.competition_result;
+        if (compResult.success) {
+          showToast(`✓ Submitted & CORRECT! ${compResult.message}`, 'success');
+        } else {
+          const resultText = compResult.submission_result === 'WRONG' ? '✗ WRONG' : '✗ Rejected';
+          showToast(`${resultText}: ${compResult.message}`, 'error');
+        }
+      }
       
       setSubmitStatus({
         type: 'success',
@@ -159,6 +175,23 @@ export const SubmissionDialog: React.FC<SubmissionDialogProps> = ({
           />
           <p className="text-xs text-gray-400 mt-1">
             For Q&A questions where just the frame isn't enough context
+          </p>
+        </div>
+
+        {/* Direct Submit Checkbox */}
+        <div className="mb-4">
+          <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={submitDirectly}
+              onChange={(e) => setSubmitDirectly(e.target.checked)}
+              disabled={isSubmitting}
+              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500"
+            />
+            <span>Also submit directly to competition server</span>
+          </label>
+          <p className="text-xs text-gray-400 mt-1 ml-6">
+            If checked, will automatically submit to OJ server after saving
           </p>
         </div>
 

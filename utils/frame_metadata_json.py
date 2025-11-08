@@ -58,13 +58,18 @@ def videos_to_json(videos_folder_path, keyframes_folder_path, videos_csv_path):
 
     """
     all_keyframe_metadata = []
-    print(len([x for x in os.listdir(videos_folder_path) if x.endswith(".mp4") and "converted" not in x and "partial" not in x]), len(os.listdir(keyframes_folder_path)), len(os.listdir(videos_csv_path)))
-    assert len([x for x in os.listdir(videos_folder_path) if x.endswith(".mp4") and "converted" not in x and "partial" not in x]) == len(os.listdir(keyframes_folder_path)) == len(os.listdir(videos_csv_path)), "Number of videos, keyframe folders, and csv files must match"
+    video_list = sorted([x for x in os.listdir(videos_folder_path) if x.endswith(".mp4") and x.startswith("L") and "converted" not in x and "partial" not in x])
+    keyframe_list = sorted([x for x in os.listdir(keyframes_folder_path) if x.startswith("L")])
+    videos_csv_list = sorted(os.listdir(videos_csv_path))
+    
+    # print(len([x for x in os.listdir(videos_folder_path) if x.endswith(".mp4") and "converted" not in x and "partial" not in x]), len(os.listdir(keyframes_folder_path)), len(os.listdir(videos_csv_path)))
+    # assert len([x for x in os.listdir(videos_folder_path) if x.endswith(".mp4") and x.startswith("L")  and "converted" not in x and "partial" not in x]) == len(os.listdir(keyframes_folder_path)) == len(os.listdir(videos_csv_path)), f"Number of videos, keyframe folders, and csv files must match. Found {len([x for x in os.listdir(videos_folder_path) if x.endswith('.mp4') and 'converted' not in x and 'partial' not in x])}, {len(os.listdir(keyframes_folder_path))}, {len(os.listdir(videos_csv_path))}."
+    assert len(video_list) == len(keyframe_list) == len(videos_csv_list), f"Number of videos, keyframe folders, and csv files must match. Found {len(video_list)}, {len(keyframe_list)}, {len(videos_csv_list)}."
     
     for video_file, keyframes_path, keyframe_csv_file in zip(
-            sorted([x for x in os.listdir(videos_folder_path) if x.endswith(".mp4") and "converted" not in x and "partial" not in x]), 
-            sorted(os.listdir(keyframes_folder_path)),
-            sorted(os.listdir(videos_csv_path)) ):
+            video_list,
+            keyframe_list,
+            videos_csv_list):
         videos_path = os.path.join(videos_folder_path, video_file)
         keyframe_folder_path = os.path.join(keyframes_folder_path, keyframes_path)
         keyframe_metadata_csv_path = os.path.join(videos_csv_path, keyframe_csv_file)
@@ -72,8 +77,9 @@ def videos_to_json(videos_folder_path, keyframes_folder_path, videos_csv_path):
         all_keyframe_metadata.extend(video_keyframe_metadata)
     return all_keyframe_metadata
 
-tmp = videos_to_json("/data/root/data/unzipped/video","/data/root/data/unzipped/keyframes","/data/root/data/unzipped/map-keyframes-b2")
+# tmp = videos_to_json("/data/root/data/unzipped/video","/data/root/data/unzipped/keyframes","/data/root/data/unzipped/map-keyframes-b2")
+tmp = videos_to_json("/root/src/data/unzipped/video","/root/src/data/unzipped/keyframes","/root/src/data/unzipped/map-keyframes")
 import json
-output_path = "/data/root/data/frame_metadata_batch2.json"
+output_path = "/root/src/data/frame_metadata_batch1.json"
 with open(output_path, "w") as f:
     json.dump(tmp, f)

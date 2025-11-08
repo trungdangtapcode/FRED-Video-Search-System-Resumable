@@ -6,12 +6,19 @@ export interface SubmissionData {
   video_path: string;
   timestamp: number;
   frame_idx: number;
+  submit_directly?: boolean; // Whether to also submit to competition
 }
 
 export interface SubmissionResponse {
   success: boolean;
   message: string;
   total_frames: number;
+  competition_result?: {
+    success: boolean;
+    message: string;
+    submission_result?: string;
+    evaluation_id: string;
+  };
 }
 
 export interface QuestionSubmission {
@@ -202,6 +209,42 @@ class SubmissionService {
       return await response.json();
     } catch (error) {
       console.error('Reorder error:', error);
+      throw error;
+    }
+  }
+
+  async submitToCompetition(data: {
+    question: string;
+    question_type: 'KIS' | 'QA' | 'TRAKE';
+    video_path: string;
+    timestamp: number;
+    frame_idx: number;
+    answer?: string;
+    all_frames?: QuestionSubmission[];  // For TRAKE questions
+  }): Promise<{
+    success: boolean;
+    message: string;
+    submission_result?: string;
+    evaluation_id: string;
+    competition_response: any;
+  }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/submit_to_competition`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to submit to competition');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Competition submission error:', error);
       throw error;
     }
   }

@@ -16,12 +16,12 @@ def initialize_all_indexes():
     # Define indexes to create
     indexes_config = [
         {
-            "json_path": "/data/root/data/frame_asr_v3.json",
+            "json_path": "/root/frame_asr_v3.json",
             "index_name": "asr_index",
             "keyname": "asr"
         },
         {
-            "json_path": "/data/root/meilisearch/ocr/OCR/idx_ocr_b1_b2.json",
+            "json_path": "/root/idx_ocr_b1_b2.json",
             "index_name": "ocr_index",
             "keyname": "ocr"
         }
@@ -74,11 +74,24 @@ def query_elasticsearch():
                     }
                 }
             },
-            "size": top_k,  # Return top 20 results
+            "size": top_k,  # Return top k results
             "sort": [
                 {"_score": {"order": "desc"}}
             ]
         }
+        # search_query = {
+        #     "query": {
+        #         "match_phrase": {    # bắt buộc đúng thứ tự & gần như exact
+        #             "text": {
+        #                 "query": query_text
+        #             }
+        #         }
+        #     },
+        #     "size": top_k,
+        #     "sort": [
+        #         {"_score": {"order": "desc"}}
+        #     ]
+        # }
         
         response = es.search(index=index_name, body=search_query)
         
@@ -133,5 +146,5 @@ if __name__ == '__main__':
         print(f"Warning: Error during index initialization: {str(e)}")
     
     # Start Flask server
-    print("Starting Flask server on 0.0.0.0:9201...")
-    app.run(host='0.0.0.0', port=9201, debug=False)
+    print("Starting Flask server on 0.0.0.0:50298...")
+    app.run(host='0.0.0.0', port=50298, debug=False)

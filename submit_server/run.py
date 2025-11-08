@@ -17,8 +17,15 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Configuration
-SUBMISSIONS_FILE = '/data/root/hcmc/submit_server/submissions.json'
-PORT = 5001
+SUBMISSIONS_FILE = 'submissions.json'
+PORT = 13022
+
+FPS_VIDEO_PATH = '/root/src/data/video_fps.json'
+with open(FPS_VIDEO_PATH, 'r') as f:
+    VIDEO_FPS_DATA = json.load(f)
+
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 def load_submissions():
     """Load existing submissions from JSON file"""
@@ -34,8 +41,10 @@ def load_submissions():
 def save_submissions(submissions):
     """Save submissions to JSON file"""
     try:
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(SUBMISSIONS_FILE), exist_ok=True)
+        # Ensure directory exists (only if there's a directory in the path)
+        dir_name = os.path.dirname(SUBMISSIONS_FILE)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
         
         with open(SUBMISSIONS_FILE, 'w', encoding='utf-8') as f:
             json.dump(submissions, f, indent=2, ensure_ascii=False)
@@ -51,7 +60,12 @@ def submit_question():
         from config import ROOT_DIR
         
         data = request.get_json()
-        
+        if data['frame_idx'] < 0:
+            video_id = os.path.basename(data['video_path']).replace('.mp4', '')
+            fps =  VIDEO_FPS_DATA.get(video_id, -1) 
+            if fps != -1:
+                data['frame_idx'] = int(fps * float(data['timestamp']))
+
         # Validate required fields
         required_fields = ['question', 'video_path', 'timestamp', 'frame_idx']
         for field in required_fields:
@@ -89,14 +103,91 @@ def submit_question():
         
         # Save submissions
         if save_submissions(submissions):
-            return jsonify({
+            response_data = {
                 'success': True,
                 'message': 'Question submitted successfully',
                 'total_frames': len(submissions[question])
-            })
+            }
+            
+            # If submit_directly is True, also submit to competition
+            if data.get('submit_directly', False):
+                try:
+                    from competition_submit import submit_to_competition as do_submit
+                    
+                    # Determine question type
+                    lower_question = question.lower()
+                    if 'trake' in lower_question:
+                        question_type = 'TRAKE'
+                        # Get all frames for TRAKE
+                        all_frames = submissions[question]
+                    elif frame_entry.get('answer'):
+                        question_type = 'QA'
+                        all_frames = None
+                    else:
+                        question_type = 'KIS'
+                        all_frames = None
+                    
+                    # Submit to competition
+                    competition_result = do_submit(
+                        question_type=question_type,
+                        video_path=full_video_path,
+                        timestamp=float(data['timestamp']),
+                        frame_idx=int(data['frame_idx']),
+                        answer=frame_entry.get('answer'),
+                        all_frames=all_frames
+                    )
+                    
+                    response_data['competition_result'] = competition_result
+                except Exception as comp_error:
+                    print(f"Competition submission error: {comp_error}")
+                    response_data['competition_result'] = {
+                        'success': False,
+                        'message': str(comp_error)
+                    }
+            
+            return jsonify(response_data)
         else:
             return jsonify({'error': 'Failed to save submission'}), 500
             
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/submit_to_competition', methods=['POST'])
+def submit_to_competition():
+    """Submit a question to the competition server"""
+    try:
+        from competition_submit import submit_to_competition as do_submit
+        
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['question_type', 'video_path', 'timestamp', 'frame_idx']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Extract data
+        question_type = data['question_type']
+        video_path = data['video_path']
+        timestamp = float(data['timestamp'])
+        frame_idx = int(data['frame_idx'])
+        answer = data.get('answer', '')
+        all_frames = data.get('all_frames', None)  # For TRAKE questions
+        
+        # Submit to competition
+        result = do_submit(
+            question_type=question_type,
+            video_path=video_path,
+            timestamp=timestamp,
+            frame_idx=frame_idx,
+            answer=answer,
+            all_frames=all_frames
+        )
+        
+        return jsonify(result)
+        
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -254,12 +345,7 @@ def get_stats():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
-from flask import request, jsonify, send_file
-from io import BytesIO
-import os
-# import imageio.v3 as iio
-import numpy as np
+
 @app.route('/extract_frame', methods=['GET'])
 def extract_frame():
     """Extract frame from video at specific timestamp"""
@@ -278,7 +364,8 @@ def extract_frame():
             return jsonify({'error': 'Invalid timestamp format'}), 400
         
         # Add ROOT_DIR back to the relative path
-        full_video_path = os.path.join(ROOT_DIR, relative_video_path.lstrip('/'))
+        full_video_path = relative_video_path
+        # full_video_path = os.path.join(ROOT_DIR, relative_video_path.lstrip('/'))
         
         # Check if video file exists
         if not os.path.exists(full_video_path):

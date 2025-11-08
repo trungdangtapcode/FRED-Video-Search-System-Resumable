@@ -6,7 +6,7 @@ import uvicorn
 
 app = FastAPI()
 
-ROOT_DIR = "/data/root"
+ROOT_DIR = "/"
 
 # --- CORS settings ---
 app.add_middleware(

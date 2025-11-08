@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { submissionService } from '@/services/submissionService';
 import type { QuestionSubmission } from '@/services/submissionService';
 import { openVideoPlayer } from '@/utils/videoUtils';
-import { API_ENDPOINTS, ROOT_DIR } from '@/constants';
+import { API_ENDPOINTS, ROOT_DIR, DIRECTLY_DEFAULT } from '@/constants';
 import { Film, Clock, Hash } from 'lucide-react';
-import { ConfirmModal, AlertModal } from '@/components/ui/Modal';
+import { ConfirmModal } from '@/components/ui/Modal';
+import { useToast } from '@/hooks/useToast';
 
 interface GroupedSubmissions {
   question: string;
@@ -99,8 +100,10 @@ const SubmissionsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [isReorderMode, setIsReorderMode] = useState(false);
+  const [isSubmitMode, setIsSubmitMode] = useState(false);
+  const { showToast } = useToast();
   
-  // Modal states
+  // Modal states (only for confirmations)
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -111,18 +114,6 @@ const SubmissionsPage: React.FC = () => {
     title: '',
     message: '',
     onConfirm: () => {}
-  });
-  
-  const [alertModal, setAlertModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    type: 'success' | 'error' | 'info';
-  }>({
-    isOpen: false,
-    title: '',
-    message: '',
-    type: 'info'
   });
 
   // Reorder modal state
@@ -144,7 +135,7 @@ const SubmissionsPage: React.FC = () => {
     loadSubmissions();
   }, []);
 
-  // Handle "X" key for delete mode and "C" key for reorder mode
+  // Handle "X" key for delete mode and "C" key for reorder mode and "P" key for submit mode
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ignore if typing in an input
@@ -161,6 +152,11 @@ const SubmissionsPage: React.FC = () => {
         console.log('C key pressed - entering reorder mode');
         setIsReorderMode(true);
       }
+
+      if (event.key.toLowerCase() === 'p' && !event.ctrlKey && !event.metaKey) {
+        console.log('P key pressed - entering submit mode');
+        setIsSubmitMode(true);
+      }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
@@ -172,6 +168,11 @@ const SubmissionsPage: React.FC = () => {
       if (event.key.toLowerCase() === 'c') {
         console.log('C key released - exiting reorder mode');
         setIsReorderMode(false);
+      }
+
+      if (event.key.toLowerCase() === 'p') {
+        console.log('P key released - exiting submit mode');
+        setIsSubmitMode(false);
       }
     };
 
@@ -237,21 +238,11 @@ const SubmissionsPage: React.FC = () => {
       // Call backend to update the order
       await submissionService.reorderFrames(question, newFrames);
 
-      setAlertModal({
-        isOpen: true,
-        title: 'Success',
-        message: 'Frame order updated successfully!',
-        type: 'success'
-      });
+      showToast('Frame order updated successfully!', 'success');
 
       setReorderModal({ isOpen: false, frame: null, question: '', currentIndex: 0, totalFrames: 0 });
     } catch (error) {
-      setAlertModal({
-        isOpen: true,
-        title: 'Error',
-        message: 'Failed to reorder frame. Please try again.',
-        type: 'error'
-      });
+      showToast('Failed to reorder frame. Please try again.', 'error');
       console.error('Reorder error:', error);
       
       // Reload submissions to reset state
@@ -259,10 +250,95 @@ const SubmissionsPage: React.FC = () => {
     }
   };
 
-  const handleFrameClick = async (frame: QuestionSubmission, question: string) => {
-    console.log('Frame clicked. Delete mode:', isDeleteMode, 'Reorder mode:', isReorderMode);
+  // Helper function to determine question type from question text and frame data
+  const getQuestionType = (question: string, frame: QuestionSubmission): 'KIS' | 'QA' | 'TRAKE' | null => {
+    const lowerQuestion = question.toLowerCase();
     
-    if (isDeleteMode) {
+    // Check if it's TRAKE (has "trake" in title)
+    if (lowerQuestion.includes('trake')) {
+      return 'TRAKE';
+    }
+    
+    // Check if it's QA (has answer field that's not empty)
+    if (frame.answer && frame.answer.trim() !== '') {
+      return 'QA';
+    }
+    
+    // Default to KIS
+    return 'KIS';
+  };
+
+  const handleSubmitToCompetition = async (frame: QuestionSubmission, question: string, questionType: 'KIS' | 'QA' | 'TRAKE') => {
+    try {
+      // For KIS and QA: if DIRECTLY_DEFAULT is true, save locally first
+      if (DIRECTLY_DEFAULT && (questionType === 'KIS' || questionType === 'QA')) {
+        try {
+          await submissionService.submitQuestion({
+            question: question,
+            video_path: frame.video_path,
+            timestamp: frame.timestamp,
+            frame_idx: frame.frame_idx,
+            answer: frame.answer
+          });
+          console.log('Frame saved locally');
+        } catch (error) {
+          console.error('Failed to save locally:', error);
+          // Continue to competition submission even if local save fails
+        }
+      }
+
+      // For TRAKE questions, get all frames in the question
+      let allFrames = undefined;
+      if (questionType === 'TRAKE') {
+        const questionGroup = submissions.find(s => s.question === question);
+        if (questionGroup) {
+          allFrames = questionGroup.frames;
+        }
+      }
+
+      const submissionData = {
+        question: question,
+        question_type: questionType,
+        video_path: frame.video_path,
+        timestamp: frame.timestamp,
+        frame_idx: frame.frame_idx,
+        answer: frame.answer,
+        all_frames: allFrames  // Only populated for TRAKE questions
+      };
+
+      const result = await submissionService.submitToCompetition(submissionData);
+
+      // Check if submission was actually successful based on competition server response
+      // success: true only when status is true AND submission is CORRECT
+      if (result.success) {
+        showToast(`✓ ${questionType} CORRECT! ${result.message}`, 'success');
+      } else {
+        // Could be WRONG answer or rejected submission
+        const resultText = result.submission_result === 'WRONG' ? '✗ WRONG' : '✗ Rejected';
+        showToast(`${resultText}: ${result.message}`, 'error');
+      }
+    } catch (error: any) {
+      showToast(error.message || 'Failed to submit to competition', 'error');
+      console.error('Competition submission error:', error);
+    }
+  };
+
+  const handleFrameClick = async (frame: QuestionSubmission, question: string) => {
+    console.log('Frame clicked. Delete mode:', isDeleteMode, 'Reorder mode:', isReorderMode, 'Submit mode:', isSubmitMode);
+    
+    if (isSubmitMode) {
+      console.log('In submit mode - submitting to competition');
+      
+      // Detect question type
+      const detectedType = getQuestionType(question, frame);
+      if (!detectedType) {
+        showToast('Could not determine question type.', 'error');
+        return;
+      }
+      
+      // Submit directly without confirmation
+      await handleSubmitToCompetition(frame, question, detectedType);
+    } else if (isDeleteMode) {
       console.log('In delete mode - deleting frame');
       
       // Show confirmation modal instead of native confirm
@@ -280,24 +356,12 @@ const SubmissionsPage: React.FC = () => {
               frame_idx: frame.frame_idx,
             });
             
-            // Show success alert
-            setAlertModal({
-              isOpen: true,
-              title: 'Success',
-              message: 'Frame deleted successfully!',
-              type: 'success'
-            });
+            showToast('Frame deleted successfully!', 'success');
             
             // Reload submissions to reflect the change
             await loadSubmissions();
           } catch (error) {
-            // Show error alert
-            setAlertModal({
-              isOpen: true,
-              title: 'Error',
-              message: 'Failed to delete frame. Please try again.',
-              type: 'error'
-            });
+            showToast('Failed to delete frame. Please try again.', 'error');
             console.error('Delete error:', error);
           }
         }
@@ -397,6 +461,12 @@ const SubmissionsPage: React.FC = () => {
                   REORDER MODE - Click frame to change position
                 </div>
               )}
+              {/* Submit mode indicator */}
+              {isSubmitMode && (
+                <div className="bg-green-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg animate-pulse">
+                  SUBMIT MODE - Click frame to submit to competition
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -410,9 +480,32 @@ const SubmissionsPage: React.FC = () => {
           <div key={group.question} className="bg-white rounded-lg shadow-sm border p-6">
             {/* Question Header */}
             <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                {group.question}
-              </h2>
+              <div className="flex items-center gap-3 mb-2">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {group.question}
+                </h2>
+                {/* Question Type Badge */}
+                {(() => {
+                  // Determine type from question title and first frame
+                  const lowerQuestion = group.question.toLowerCase();
+                  let qType: 'KIS' | 'QA' | 'TRAKE' = 'KIS';
+                  
+                  if (lowerQuestion.includes('trake')) {
+                    qType = 'TRAKE';
+                  } else if (group.frames.length > 0 && group.frames[0].answer) {
+                    qType = 'QA';
+                  }
+                  
+                  if (qType === 'KIS') {
+                    return <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded">KIS</span>;
+                  } else if (qType === 'QA') {
+                    return <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">QA</span>;
+                  } else if (qType === 'TRAKE') {
+                    return <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded">TRAKE</span>;
+                  }
+                  return null;
+                })()}
+              </div>
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <span className="flex items-center gap-1">
                   <Hash className="h-4 w-4" />
@@ -430,6 +523,8 @@ const SubmissionsPage: React.FC = () => {
                     isDeleteMode ? 'ring-2 ring-red-400' : ''
                   } ${
                     isReorderMode ? 'ring-2 ring-blue-400' : ''
+                  } ${
+                    isSubmitMode ? 'ring-2 ring-green-400' : ''
                   }`}
                   onClick={() => handleFrameClick(frame, group.question)}
                 >
@@ -481,14 +576,6 @@ const SubmissionsPage: React.FC = () => {
         confirmText="Delete"
         cancelText="Cancel"
         isDestructive={true}
-      />
-      
-      <AlertModal
-        isOpen={alertModal.isOpen}
-        onClose={() => setAlertModal(prev => ({ ...prev, isOpen: false }))}
-        title={alertModal.title}
-        message={alertModal.message}
-        type={alertModal.type}
       />
 
       {/* Reorder Modal */}

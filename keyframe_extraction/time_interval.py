@@ -18,10 +18,36 @@ def extract_frames(video_path, output_folder, interval=2, position=0):
     frame_interval = int(round(fps * interval))
 
     os.makedirs(output_folder, exist_ok=True)
+    
+    # count files in output_folder to avoid overwriting
+    existing_files = [f for f in os.listdir(output_folder) if f.endswith('.png') or f.endswith('.jpg') or f.endswith('.jpeg')]
+    total_extract = (total_frames + frame_interval - 1) // frame_interval
+    # print(f"Found {len(existing_files)} existing frames in {output_folder}.", total_extract)
+    if total_extract == len(existing_files):
+        # print(f"Frames already extracted for {video_path}, skipping.")
+        # calculate metadata without re-extracting
+        metadata = []
+        abs_video_path = os.path.abspath(video_path)
+        for i in range(len(existing_files)):
+            frame_idx = i * frame_interval
+            timestamp = frame_idx / fps
+            filename = f"{i:05d}.png"
+            filepath = os.path.join(output_folder, filename)
+            abs_filepath = os.path.abspath(filepath)
+            metadata.append({
+                "video_path": abs_video_path,
+                "fps": fps,
+                "timestamp": timestamp,
+                "frame_idx": frame_idx,
+                "frame_path": abs_filepath
+            })
+        cap.release()
+        return metadata
 
     frame_count, saved_count = 0, 0
     metadata = []
     abs_video_path = os.path.abspath(video_path)
+    
 
     if not SHOW_TQDM:
         while True:
@@ -50,6 +76,7 @@ def extract_frames(video_path, output_folder, interval=2, position=0):
         cap.release()
         return metadata
 
+    print('Processing video:', video_path)
     with tqdm(
         total=total_frames,
         desc=f"Frames {os.path.basename(video_path)}",

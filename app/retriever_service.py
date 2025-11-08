@@ -5,6 +5,9 @@ from .config import FRAMES_METADATA_PATH, MODEL_NAME, DEVICE
 from embedding import image_embedder, text_embedder, retriever_client
 from text_search import text_search_client
 
+SEARCH_URL = "http://localhost:50239"
+TEXT_URL = "http://localhost:50298"
+
 # ima# The code snippet you provided is commented out, so it is not being executed. However, based on
 # the commented lines, it seems like the intention was to create instances of
 # `image_embedder.ImageEmbedder`, `text_embedder.TextEmbedder`, and
@@ -13,9 +16,9 @@ image_embedder_instance = image_embedder.ImageEmbedder(model_name=MODEL_NAME, de
 
 text_embedder_instance = text_embedder.TextEmbedder(image_embedder_instance)
 
-retriever_client_instance = retriever_client.RetrieverClient(text_embedder_instance)
+retriever_client_instance = retriever_client.RetrieverClient(text_embedder_instance, server_url=SEARCH_URL)
 
-text_search_instance = text_search_client.TextSearchClient()
+text_search_instance = text_search_client.TextSearchClient(server_url=TEXT_URL)
 
 # Load metadata
 with open(FRAMES_METADATA_PATH, 'r') as f:
@@ -119,8 +122,8 @@ def retrieve_metadata_from_image(image_data, top_k: int = 5, return_scores: bool
             "query_embeds": query_embeddings.tolist(),
             "top_k": top_k
         }
-        
-        resp = requests.post("http://localhost:5679/search", json=payload)
+
+        resp = requests.post(f"{SEARCH_URL}/search", json=payload)
         if resp.status_code == 200:
             result = resp.json()
             indices = result["indices"][0]  # First query results
@@ -162,8 +165,8 @@ def retrieve_similar_frames_by_index(frame_index: int, top_k: int = 10):
             "frame_index": frame_index,
             "top_k": top_k
         }
-        
-        resp = requests.post("http://localhost:5679/search_frame_similarity", json=payload)
+
+        resp = requests.post(f"{SEARCH_URL}/search_frame_similarity", json=payload)
         if resp.status_code == 200:
             result = resp.json()
             similar_indices = result["indices"]
@@ -203,8 +206,8 @@ def retrieve_similar_frames_by_metadata_index(metadata_index: int, top_k: int = 
             "metadata_index": metadata_index,
             "top_k": top_k
         }
-        
-        resp = requests.post("http://localhost:5679/search_frame_similarity", json=payload)
+
+        resp = requests.post(f"{SEARCH_URL}/search_frame_similarity", json=payload)
         if resp.status_code == 200:
             result = resp.json()
             similar_indices = result["indices"]

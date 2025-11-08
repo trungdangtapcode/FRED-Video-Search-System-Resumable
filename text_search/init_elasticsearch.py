@@ -8,7 +8,7 @@ def init_elasticsearch(json_path, index_name="asr_index", keyname="asr"):
     es = Elasticsearch("http://localhost:9200", request_timeout=100)
 
     # Define index settings with custom analyzer
-    index_settings = {
+    index_settings_ocr = index_settings_asr = {
         "settings": {
             "analysis": {
                 "char_filter": {
@@ -49,6 +49,50 @@ def init_elasticsearch(json_path, index_name="asr_index", keyname="asr"):
             }
         }
     }
+    
+    # index_settings_ocr = index_settings_asr = {
+    #     "settings": {
+    #         "analysis": {
+    #             "char_filter": {
+    #                 "remove_spaces": {
+    #                     "type": "pattern_replace",
+    #                     "pattern": "\\s+",
+    #                     "replacement": ""
+    #                 },
+    #                 "ocr_fix": {
+    #                     "type": "mapping",
+    #                     "mappings": [
+    #                         "0 => o",
+    #                         "1 => l",
+    #                         "5 => s",
+    #                         "! => i"
+    #                     ]
+    #                 }
+    #             },
+    #             "analyzer": {
+    #                 "strict_text_analyzer": {
+    #                     "type": "custom",
+    #                     "char_filter": ["ocr_fix"],
+    #                     "tokenizer": "keyword",     # giữ nguyên toàn bộ chuỗi
+    #                     "filter": ["lowercase"]     # chỉ chuyển về chữ thường
+    #                 }
+    #             }
+    #         }
+    #     },
+    #     "mappings": {
+    #         "properties": {
+    #             "text": {
+    #                 "type": "text",
+    #                 "analyzer": "strict_text_analyzer",
+    #                 "search_analyzer": "strict_text_analyzer"
+    #             }
+    #         }
+    #     }
+    # }
+
+
+
+    index_settings = index_settings_asr if keyname == "asr" else index_settings_ocr
 
     # Create the index (deletes if exists, for testing)
     if es.indices.exists(index=index_name):

@@ -1,11 +1,15 @@
 // API endpoints
 export const API_ENDPOINTS = {
-  SEARCH: 'http://103.155.161.183:5000/retrieve',
-  STATIC_SERVER: 'http://103.155.161.183:8069',
-  SUBMIT_SERVER: 'http://103.155.161.183:5001',
-  TRANSLATE_BASE_URL: 'http://103.155.161.183:5002',
-  SEARCH_BASE_URL: 'http://103.155.161.183:5000'
+  SEARCH: 'http://111.237.107.89:50313/retrieve',
+  STATIC_SERVER: 'http://103.155.161.181:13021',
+  SUBMIT_SERVER: 'http://103.155.161.181:13022',
+  // COMPETITION_SUBMIT: 'http://103.155.161.181:13023',
+  TRANSLATE_BASE_URL: 'http://103.155.161.181:13023',
+  SEARCH_BASE_URL: 'http://111.237.107.89:50313'
 } as const;
+
+
+export const DIRECTLY_DEFAULT = true;
 
 // Default values
 export const DEFAULT_VALUES = {

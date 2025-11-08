@@ -220,7 +220,7 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
     console.log('Frame clicked. Submit mode:', isSubmitMode);
     
     if (isSubmitMode) {
-      console.log('In submit mode - opening submission dialog');
+      console.log('In submit mode - opening submission dialog with DIRECTLY_DEFAULT');
       setSelectedFrameForSubmission(result);
       setSubmissionDialogOpen(true);
     } else if (isDinoMode) {
