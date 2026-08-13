@@ -49,19 +49,7 @@ def extract_videos(input_folder, output_folder, pos_begin=None, pos_end=None, in
             all_metadata.extend(meta)
         return all_metadata
 
-# os.environ["OPENCV_FFMPEG_BINARY"] = "/usr/bin/ffmpeg"  # Adjust to your FFmpeg path (run `which ffmpeg`)
-# os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "hwaccel;none;video_codec;libdav1d"  # Force software decoding with libdav1d
-
-import json
 if __name__ == "__main__":
-    # Example: extract frames every 2s, process up to 4 videos in parallel
-    # conda activate utils && cd hcmc && python -m keyframe_extraction.videos
-    x = 2
-    length = 300
-    offset = 605
-    
+    from .__main__ import main
 
-    frame_metadata = extract_videos("/root/src/data/unzipped/video", "/root/src/data/extracted_keyframes", interval=2, max_workers=1
-        , pos_begin=x*length+offset, pos_end=(x+1)*length+offset)
-    with open(f"/root/src/data/frame_metadata{x}.json", "w") as f:
-        json.dump(frame_metadata, f, indent=4)
+    raise SystemExit(main())
