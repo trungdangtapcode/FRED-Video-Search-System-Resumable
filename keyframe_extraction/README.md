@@ -46,8 +46,9 @@ shard below one output directory:
 
 The checked-in `manifests/aic25-b1` plan was built from the official Batch 1
 media-info. It contains 873 videos in 28 shards targeting about 10 GB of PNG
-output per shard. For the Kaggle dataset path from the project setup, a shard
-command is:
+output per shard. `kaggle/keyframe_shard_template.ipynb` is the ready-to-import
+Kaggle notebook; duplicate it and change only its `SHARD` setting. For the
+Kaggle dataset path from the project setup, the underlying shard command is:
 
 ```bash
 python -m keyframe_extraction \
