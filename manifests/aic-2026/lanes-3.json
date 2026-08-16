@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "lane_count": 3,
+  "allocation_basis": "duration_seconds",
+  "total_duration_seconds": 398793.0,
+  "estimated_output_bytes": 193656017386,
+  "lanes": [
+    {
+      "lane": 1,
+      "duration_seconds": 132931.0,
+      "estimated_output_bytes": 64546507576,
+      "video_count": 229,
+      "shards": [
+        "L21/part-001.json",
+        "L22/part-001.json",
+        "L25/part-002.json",
+        "L25/part-003.json",
+        "L25/part-006.json",
+        "L26/part-005.json",
+        "L28/part-001.json",
+        "L30/part-001.json"
+      ]
+    },
+    {
+      "lane": 2,
+      "duration_seconds": 132931.0,
+      "estimated_output_bytes": 64563002234,
+      "video_count": 296,
+      "shards": [
+        "L23/part-001.json",
+        "L25/part-004.json",
+        "L25/part-007.json",
+        "L26/part-001.json",
+        "L26/part-002.json",
+        "L26/part-003.json",
+        "L26/part-007.json",
+        "L29/part-002.json"
+      ]
+    },
+    {
+      "lane": 3,
+      "duration_seconds": 132931.0,
+      "estimated_output_bytes": 64546507576,
+      "video_count": 229,
+      "shards": [
+        "L24/part-001.json",
+        "L24/part-002.json",
+        "L25/part-001.json",
+        "L25/part-005.json",
+        "L26/part-004.json",
+        "L26/part-006.json",
+        "L27/part-001.json",
+        "L28/part-002.json",
+        "L29/part-001.json"
+      ]
+    }
+  ]
+}

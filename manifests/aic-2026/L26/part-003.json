@@ -1,0 +1,314 @@
+{
+  "version": 1,
+  "shard_id": "L26_p03",
+  "group": "L26",
+  "part": 3,
+  "part_count": 7,
+  "interval_seconds": 2.0,
+  "target_duration_seconds": 20700.0,
+  "duration_seconds": 19029.0,
+  "estimated_frames": 9530,
+  "videos": [
+    {
+      "video_id": "L26_V198",
+      "filename": "L26_V198.mp4",
+      "duration_seconds": 318.0
+    },
+    {
+      "video_id": "L26_V199",
+      "filename": "L26_V199.mp4",
+      "duration_seconds": 322.0
+    },
+    {
+      "video_id": "L26_V200",
+      "filename": "L26_V200.mp4",
+      "duration_seconds": 322.0
+    },
+    {
+      "video_id": "L26_V201",
+      "filename": "L26_V201.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V202",
+      "filename": "L26_V202.mp4",
+      "duration_seconds": 321.0
+    },
+    {
+      "video_id": "L26_V203",
+      "filename": "L26_V203.mp4",
+      "duration_seconds": 327.0
+    },
+    {
+      "video_id": "L26_V204",
+      "filename": "L26_V204.mp4",
+      "duration_seconds": 325.0
+    },
+    {
+      "video_id": "L26_V205",
+      "filename": "L26_V205.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V206",
+      "filename": "L26_V206.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V207",
+      "filename": "L26_V207.mp4",
+      "duration_seconds": 316.0
+    },
+    {
+      "video_id": "L26_V208",
+      "filename": "L26_V208.mp4",
+      "duration_seconds": 324.0
+    },
+    {
+      "video_id": "L26_V209",
+      "filename": "L26_V209.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V210",
+      "filename": "L26_V210.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V211",
+      "filename": "L26_V211.mp4",
+      "duration_seconds": 320.0
+    },
+    {
+      "video_id": "L26_V212",
+      "filename": "L26_V212.mp4",
+      "duration_seconds": 325.0
+    },
+    {
+      "video_id": "L26_V213",
+      "filename": "L26_V213.mp4",
+      "duration_seconds": 312.0
+    },
+    {
+      "video_id": "L26_V214",
+      "filename": "L26_V214.mp4",
+      "duration_seconds": 324.0
+    },
+    {
+      "video_id": "L26_V215",
+      "filename": "L26_V215.mp4",
+      "duration_seconds": 300.0
+    },
+    {
+      "video_id": "L26_V216",
+      "filename": "L26_V216.mp4",
+      "duration_seconds": 318.0
+    },
+    {
+      "video_id": "L26_V217",
+      "filename": "L26_V217.mp4",
+      "duration_seconds": 326.0
+    },
+    {
+      "video_id": "L26_V218",
+      "filename": "L26_V218.mp4",
+      "duration_seconds": 317.0
+    },
+    {
+      "video_id": "L26_V219",
+      "filename": "L26_V219.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V220",
+      "filename": "L26_V220.mp4",
+      "duration_seconds": 324.0
+    },
+    {
+      "video_id": "L26_V221",
+      "filename": "L26_V221.mp4",
+      "duration_seconds": 299.0
+    },
+    {
+      "video_id": "L26_V222",
+      "filename": "L26_V222.mp4",
+      "duration_seconds": 316.0
+    },
+    {
+      "video_id": "L26_V223",
+      "filename": "L26_V223.mp4",
+      "duration_seconds": 311.0
+    },
+    {
+      "video_id": "L26_V224",
+      "filename": "L26_V224.mp4",
+      "duration_seconds": 322.0
+    },
+    {
+      "video_id": "L26_V225",
+      "filename": "L26_V225.mp4",
+      "duration_seconds": 323.0
+    },
+    {
+      "video_id": "L26_V226",
+      "filename": "L26_V226.mp4",
+      "duration_seconds": 328.0
+    },
+    {
+      "video_id": "L26_V227",
+      "filename": "L26_V227.mp4",
+      "duration_seconds": 325.0
+    },
+    {
+      "video_id": "L26_V228",
+      "filename": "L26_V228.mp4",
+      "duration_seconds": 291.0
+    },
+    {
+      "video_id": "L26_V229",
+      "filename": "L26_V229.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V230",
+      "filename": "L26_V230.mp4",
+      "duration_seconds": 317.0
+    },
+    {
+      "video_id": "L26_V231",
+      "filename": "L26_V231.mp4",
+      "duration_seconds": 322.0
+    },
+    {
+      "video_id": "L26_V232",
+      "filename": "L26_V232.mp4",
+      "duration_seconds": 325.0
+    },
+    {
+      "video_id": "L26_V233",
+      "filename": "L26_V233.mp4",
+      "duration_seconds": 296.0
+    },
+    {
+      "video_id": "L26_V234",
+      "filename": "L26_V234.mp4",
+      "duration_seconds": 326.0
+    },
+    {
+      "video_id": "L26_V235",
+      "filename": "L26_V235.mp4",
+      "duration_seconds": 309.0
+    },
+    {
+      "video_id": "L26_V236",
+      "filename": "L26_V236.mp4",
+      "duration_seconds": 301.0
+    },
+    {
+      "video_id": "L26_V237",
+      "filename": "L26_V237.mp4",
+      "duration_seconds": 317.0
+    },
+    {
+      "video_id": "L26_V238",
+      "filename": "L26_V238.mp4",
+      "duration_seconds": 309.0
+    },
+    {
+      "video_id": "L26_V239",
+      "filename": "L26_V239.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V240",
+      "filename": "L26_V240.mp4",
+      "duration_seconds": 294.0
+    },
+    {
+      "video_id": "L26_V241",
+      "filename": "L26_V241.mp4",
+      "duration_seconds": 310.0
+    },
+    {
+      "video_id": "L26_V242",
+      "filename": "L26_V242.mp4",
+      "duration_seconds": 317.0
+    },
+    {
+      "video_id": "L26_V243",
+      "filename": "L26_V243.mp4",
+      "duration_seconds": 318.0
+    },
+    {
+      "video_id": "L26_V244",
+      "filename": "L26_V244.mp4",
+      "duration_seconds": 322.0
+    },
+    {
+      "video_id": "L26_V245",
+      "filename": "L26_V245.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V246",
+      "filename": "L26_V246.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V247",
+      "filename": "L26_V247.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V248",
+      "filename": "L26_V248.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V249",
+      "filename": "L26_V249.mp4",
+      "duration_seconds": 318.0
+    },
+    {
+      "video_id": "L26_V250",
+      "filename": "L26_V250.mp4",
+      "duration_seconds": 320.0
+    },
+    {
+      "video_id": "L26_V251",
+      "filename": "L26_V251.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V252",
+      "filename": "L26_V252.mp4",
+      "duration_seconds": 319.0
+    },
+    {
+      "video_id": "L26_V253",
+      "filename": "L26_V253.mp4",
+      "duration_seconds": 318.0
+    },
+    {
+      "video_id": "L26_V254",
+      "filename": "L26_V254.mp4",
+      "duration_seconds": 312.0
+    },
+    {
+      "video_id": "L26_V255",
+      "filename": "L26_V255.mp4",
+      "duration_seconds": 312.0
+    },
+    {
+      "video_id": "L26_V256",
+      "filename": "L26_V256.mp4",
+      "duration_seconds": 320.0
+    },
+    {
+      "video_id": "L26_V257",
+      "filename": "L26_V257.mp4",
+      "duration_seconds": 324.0
+    }
+  ],
+  "estimated_output_bytes": 9246711220
+}

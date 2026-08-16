@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "shard_id": "L28_p02",
+  "group": "L28",
+  "part": 2,
+  "part_count": 2,
+  "interval_seconds": 2.0,
+  "target_duration_seconds": 20700.0,
+  "duration_seconds": 13549.0,
+  "estimated_frames": 6776,
+  "videos": [
+    {
+      "video_id": "L28_V013",
+      "filename": "L28_V013.mp4",
+      "duration_seconds": 1130.0
+    },
+    {
+      "video_id": "L28_V014",
+      "filename": "L28_V014.mp4",
+      "duration_seconds": 1131.0
+    },
+    {
+      "video_id": "L28_V015",
+      "filename": "L28_V015.mp4",
+      "duration_seconds": 1130.0
+    },
+    {
+      "video_id": "L28_V016",
+      "filename": "L28_V016.mp4",
+      "duration_seconds": 1169.0
+    },
+    {
+      "video_id": "L28_V017",
+      "filename": "L28_V017.mp4",
+      "duration_seconds": 1170.0
+    },
+    {
+      "video_id": "L28_V018",
+      "filename": "L28_V018.mp4",
+      "duration_seconds": 1130.0
+    },
+    {
+      "video_id": "L28_V019",
+      "filename": "L28_V019.mp4",
+      "duration_seconds": 1134.0
+    },
+    {
+      "video_id": "L28_V020",
+      "filename": "L28_V020.mp4",
+      "duration_seconds": 1099.0
+    },
+    {
+      "video_id": "L28_V021",
+      "filename": "L28_V021.mp4",
+      "duration_seconds": 1130.0
+    },
+    {
+      "video_id": "L28_V022",
+      "filename": "L28_V022.mp4",
+      "duration_seconds": 1106.0
+    },
+    {
+      "video_id": "L28_V023",
+      "filename": "L28_V023.mp4",
+      "duration_seconds": 1094.0
+    },
+    {
+      "video_id": "L28_V024",
+      "filename": "L28_V024.mp4",
+      "duration_seconds": 1126.0
+    }
+  ],
+  "estimated_output_bytes": 6574576624
+}
