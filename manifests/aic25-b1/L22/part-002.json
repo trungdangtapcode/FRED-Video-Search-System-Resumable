@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "shard_id": "L22_p02",
+  "group": "L22",
+  "part": 2,
+  "part_count": 2,
+  "interval_seconds": 2.0,
+  "target_duration_seconds": 20700.0,
+  "duration_seconds": 19021.0,
+  "estimated_frames": 9515,
+  "videos": [
+    {
+      "video_id": "L22_V016",
+      "filename": "L22_V016.mp4",
+      "duration_seconds": 1437.0
+    },
+    {
+      "video_id": "L22_V017",
+      "filename": "L22_V017.mp4",
+      "duration_seconds": 1103.0
+    },
+    {
+      "video_id": "L22_V018",
+      "filename": "L22_V018.mp4",
+      "duration_seconds": 1377.0
+    },
+    {
+      "video_id": "L22_V019",
+      "filename": "L22_V019.mp4",
+      "duration_seconds": 1034.0
+    },
+    {
+      "video_id": "L22_V020",
+      "filename": "L22_V020.mp4",
+      "duration_seconds": 1299.0
+    },
+    {
+      "video_id": "L22_V021",
+      "filename": "L22_V021.mp4",
+      "duration_seconds": 1271.0
+    },
+    {
+      "video_id": "L22_V022",
+      "filename": "L22_V022.mp4",
+      "duration_seconds": 1138.0
+    },
+    {
+      "video_id": "L22_V023",
+      "filename": "L22_V023.mp4",
+      "duration_seconds": 1243.0
+    },
+    {
+      "video_id": "L22_V024",
+      "filename": "L22_V024.mp4",
+      "duration_seconds": 1268.0
+    },
+    {
+      "video_id": "L22_V025",
+      "filename": "L22_V025.mp4",
+      "duration_seconds": 1129.0
+    },
+    {
+      "video_id": "L22_V026",
+      "filename": "L22_V026.mp4",
+      "duration_seconds": 1136.0
+    },
+    {
+      "video_id": "L22_V027",
+      "filename": "L22_V027.mp4",
+      "duration_seconds": 1107.0
+    },
+    {
+      "video_id": "L22_V028",
+      "filename": "L22_V028.mp4",
+      "duration_seconds": 1115.0
+    },
+    {
+      "video_id": "L22_V029",
+      "filename": "L22_V029.mp4",
+      "duration_seconds": 1056.0
+    },
+    {
+      "video_id": "L22_V030",
+      "filename": "L22_V030.mp4",
+      "duration_seconds": 1118.0
+    },
+    {
+      "video_id": "L22_V031",
+      "filename": "L22_V031.mp4",
+      "duration_seconds": 1190.0
+    }
+  ],
+  "estimated_output_bytes": 9232157110
+}

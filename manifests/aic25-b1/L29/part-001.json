@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "shard_id": "L29_p01",
+  "group": "L29",
+  "part": 1,
+  "part_count": 2,
+  "interval_seconds": 2.0,
+  "target_duration_seconds": 20700.0,
+  "duration_seconds": 12799.0,
+  "estimated_frames": 6404,
+  "videos": [
+    {
+      "video_id": "L29_V001",
+      "filename": "L29_V001.mp4",
+      "duration_seconds": 1083.0
+    },
+    {
+      "video_id": "L29_V002",
+      "filename": "L29_V002.mp4",
+      "duration_seconds": 1047.0
+    },
+    {
+      "video_id": "L29_V003",
+      "filename": "L29_V003.mp4",
+      "duration_seconds": 1047.0
+    },
+    {
+      "video_id": "L29_V004",
+      "filename": "L29_V004.mp4",
+      "duration_seconds": 1073.0
+    },
+    {
+      "video_id": "L29_V005",
+      "filename": "L29_V005.mp4",
+      "duration_seconds": 1069.0
+    },
+    {
+      "video_id": "L29_V006",
+      "filename": "L29_V006.mp4",
+      "duration_seconds": 1076.0
+    },
+    {
+      "video_id": "L29_V007",
+      "filename": "L29_V007.mp4",
+      "duration_seconds": 1073.0
+    },
+    {
+      "video_id": "L29_V008",
+      "filename": "L29_V008.mp4",
+      "duration_seconds": 1062.0
+    },
+    {
+      "video_id": "L29_V009",
+      "filename": "L29_V009.mp4",
+      "duration_seconds": 1077.0
+    },
+    {
+      "video_id": "L29_V010",
+      "filename": "L29_V010.mp4",
+      "duration_seconds": 1055.0
+    },
+    {
+      "video_id": "L29_V011",
+      "filename": "L29_V011.mp4",
+      "duration_seconds": 1076.0
+    },
+    {
+      "video_id": "L29_V012",
+      "filename": "L29_V012.mp4",
+      "duration_seconds": 1061.0
+    }
+  ],
+  "estimated_output_bytes": 6213634696
+}

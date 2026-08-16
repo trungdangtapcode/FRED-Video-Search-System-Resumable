@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "shard_id": "L25_p01",
+  "group": "L25",
+  "part": 1,
+  "part_count": 7,
+  "interval_seconds": 2.0,
+  "target_duration_seconds": 20700.0,
+  "duration_seconds": 18261.0,
+  "estimated_frames": 9134,
+  "videos": [
+    {
+      "video_id": "L25_V001",
+      "filename": "L25_V001.mp4",
+      "duration_seconds": 1603.0
+    },
+    {
+      "video_id": "L25_V002",
+      "filename": "L25_V002.mp4",
+      "duration_seconds": 1140.0
+    },
+    {
+      "video_id": "L25_V003",
+      "filename": "L25_V003.mp4",
+      "duration_seconds": 1162.0
+    },
+    {
+      "video_id": "L25_V004",
+      "filename": "L25_V004.mp4",
+      "duration_seconds": 998.0
+    },
+    {
+      "video_id": "L25_V005",
+      "filename": "L25_V005.mp4",
+      "duration_seconds": 1909.0
+    },
+    {
+      "video_id": "L25_V006",
+      "filename": "L25_V006.mp4",
+      "duration_seconds": 1123.0
+    },
+    {
+      "video_id": "L25_V007",
+      "filename": "L25_V007.mp4",
+      "duration_seconds": 2735.0
+    },
+    {
+      "video_id": "L25_V008",
+      "filename": "L25_V008.mp4",
+      "duration_seconds": 1212.0
+    },
+    {
+      "video_id": "L25_V009",
+      "filename": "L25_V009.mp4",
+      "duration_seconds": 846.0
+    },
+    {
+      "video_id": "L25_V010",
+      "filename": "L25_V010.mp4",
+      "duration_seconds": 2205.0
+    },
+    {
+      "video_id": "L25_V011",
+      "filename": "L25_V011.mp4",
+      "duration_seconds": 895.0
+    },
+    {
+      "video_id": "L25_V012",
+      "filename": "L25_V012.mp4",
+      "duration_seconds": 1241.0
+    },
+    {
+      "video_id": "L25_V013",
+      "filename": "L25_V013.mp4",
+      "duration_seconds": 1192.0
+    }
+  ],
+  "estimated_output_bytes": 8862482716
+}

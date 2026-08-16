@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "interval_seconds": 2.0,
+  "target_duration_seconds": 20700.0,
+  "video_count": 873,
+  "shard_count": 28,
+  "duration_seconds": 470428.0,
+  "estimated_frames": 235442,
+  "shards": [
+    {
+      "shard_id": "L21_p01",
+      "manifest": "L21/part-001.json",
+      "group": "L21",
+      "video_count": 14,
+      "duration_seconds": 15465.0,
+      "estimated_frames": 7736,
+      "estimated_output_bytes": 7506039664
+    },
+    {
+      "shard_id": "L21_p02",
+      "manifest": "L21/part-002.json",
+      "group": "L21",
+      "video_count": 15,
+      "duration_seconds": 16468.0,
+      "estimated_frames": 8236,
+      "estimated_output_bytes": 7991176664
+    },
+    {
+      "shard_id": "L22_p01",
+      "manifest": "L22/part-001.json",
+      "group": "L22",
+      "video_count": 15,
+      "duration_seconds": 17687.0,
+      "estimated_frames": 8849,
+      "estimated_output_bytes": 8585954626
+    },
+    {
+      "shard_id": "L22_p02",
+      "manifest": "L22/part-002.json",
+      "group": "L22",
+      "video_count": 16,
+      "duration_seconds": 19021.0,
+      "estimated_frames": 9515,
+      "estimated_output_bytes": 9232157110
+    },
+    {
+      "shard_id": "L23_p01",
+      "manifest": "L23/part-001.json",
+      "group": "L23",
+      "video_count": 25,
+      "duration_seconds": 9722.0,
+      "estimated_frames": 4867,
+      "estimated_output_bytes": 4722323558
+    },
+    {
+      "shard_id": "L24_p01",
+      "manifest": "L24/part-001.json",
+      "group": "L24",
+      "video_count": 20,
+      "duration_seconds": 11029.0,
+      "estimated_frames": 5520,
+      "estimated_output_bytes": 5355912480
+    },
+    {
+      "shard_id": "L24_p02",
+      "manifest": "L24/part-002.json",
+      "group": "L24",
+      "video_count": 23,
+      "duration_seconds": 11110.0,
+      "estimated_frames": 5560,
+      "estimated_output_bytes": 5394723440
+    },
+    {
+      "shard_id": "L25_p01",
+      "manifest": "L25/part-001.json",
+      "group": "L25",
+      "video_count": 13,
+      "duration_seconds": 18261.0,
+      "estimated_frames": 9134,
+      "estimated_output_bytes": 8862482716
+    },
+    {
+      "shard_id": "L25_p02",
+      "manifest": "L25/part-002.json",
+      "group": "L25",
+      "video_count": 13,
+      "duration_seconds": 18451.0,
+      "estimated_frames": 9229,
+      "estimated_output_bytes": 8954658746
+    },
+    {
+      "shard_id": "L25_p03",
+      "manifest": "L25/part-003.json",
+      "group": "L25",
+      "video_count": 14,
+      "duration_seconds": 19571.0,
+      "estimated_frames": 9790,
+      "estimated_output_bytes": 9498982460
+    },
+    {
+      "shard_id": "L25_p04",
+      "manifest": "L25/part-004.json",
+      "group": "L25",
+      "video_count": 11,
+      "duration_seconds": 17577.0,
+      "estimated_frames": 8792,
+      "estimated_output_bytes": 8530649008
+    },
+    {
+      "shard_id": "L25_p05",
+      "manifest": "L25/part-005.json",
+      "group": "L25",
+      "video_count": 13,
+      "duration_seconds": 18911.0,
+      "estimated_frames": 9459,
+      "estimated_output_bytes": 9177821766
+    },
+    {
+      "shard_id": "L25_p06",
+      "manifest": "L25/part-006.json",
+      "group": "L25",
+      "video_count": 13,
+      "duration_seconds": 19440.0,
+      "estimated_frames": 9723,
+      "estimated_output_bytes": 9433974102
+    },
+    {
+      "shard_id": "L25_p07",
+      "manifest": "L25/part-007.json",
+      "group": "L25",
+      "video_count": 11,
+      "duration_seconds": 18228.0,
+      "estimated_frames": 9118,
+      "estimated_output_bytes": 8846958332
+    },
+    {
+      "shard_id": "L26_p01",
+      "manifest": "L26/part-001.json",
+      "group": "L26",
+      "video_count": 62,
+      "duration_seconds": 19681.0,
+      "estimated_frames": 9858,
+      "estimated_output_bytes": 9564961092
+    },
+    {
+      "shard_id": "L26_p02",
+      "manifest": "L26/part-002.json",
+      "group": "L26",
+      "video_count": 61,
+      "duration_seconds": 19729.0,
+      "estimated_frames": 9884,
+      "estimated_output_bytes": 9590188216
+    },
+    {
+      "shard_id": "L26_p03",
+      "manifest": "L26/part-003.json",
+      "group": "L26",
+      "video_count": 61,
+      "duration_seconds": 19766.0,
+      "estimated_frames": 9897,
+      "estimated_output_bytes": 9602801778
+    },
+    {
+      "shard_id": "L26_p04",
+      "manifest": "L26/part-004.json",
+      "group": "L26",
+      "video_count": 62,
+      "duration_seconds": 19618.0,
+      "estimated_frames": 9825,
+      "estimated_output_bytes": 9532942050
+    },
+    {
+      "shard_id": "L26_p05",
+      "manifest": "L26/part-005.json",
+      "group": "L26",
+      "video_count": 62,
+      "duration_seconds": 19805.0,
+      "estimated_frames": 9919,
+      "estimated_output_bytes": 9624147806
+    },
+    {
+      "shard_id": "L26_p06",
+      "manifest": "L26/part-006.json",
+      "group": "L26",
+      "video_count": 64,
+      "duration_seconds": 19738.0,
+      "estimated_frames": 9884,
+      "estimated_output_bytes": 9590188216
+    },
+    {
+      "shard_id": "L26_p07",
+      "manifest": "L26/part-007.json",
+      "group": "L26",
+      "video_count": 63,
+      "duration_seconds": 19564.0,
+      "estimated_frames": 9797,
+      "estimated_output_bytes": 9505774378
+    },
+    {
+      "shard_id": "L26_p08",
+      "manifest": "L26/part-008.json",
+      "group": "L26",
+      "video_count": 63,
+      "duration_seconds": 19756.0,
+      "estimated_frames": 9894,
+      "estimated_output_bytes": 9599890956
+    },
+    {
+      "shard_id": "L27_p01",
+      "manifest": "L27/part-001.json",
+      "group": "L27",
+      "video_count": 16,
+      "duration_seconds": 9433.0,
+      "estimated_frames": 4720,
+      "estimated_output_bytes": 4579693280
+    },
+    {
+      "shard_id": "L28_p01",
+      "manifest": "L28/part-001.json",
+      "group": "L28",
+      "video_count": 12,
+      "duration_seconds": 13742.0,
+      "estimated_frames": 6876,
+      "estimated_output_bytes": 6671604024
+    },
+    {
+      "shard_id": "L28_p02",
+      "manifest": "L28/part-002.json",
+      "group": "L28",
+      "video_count": 12,
+      "duration_seconds": 13549.0,
+      "estimated_frames": 6776,
+      "estimated_output_bytes": 6574576624
+    },
+    {
+      "shard_id": "L29_p01",
+      "manifest": "L29/part-001.json",
+      "group": "L29",
+      "video_count": 12,
+      "duration_seconds": 12799.0,
+      "estimated_frames": 6404,
+      "estimated_output_bytes": 6213634696
+    },
+    {
+      "shard_id": "L29_p02",
+      "manifest": "L29/part-002.json",
+      "group": "L29",
+      "video_count": 11,
+      "duration_seconds": 11831.0,
+      "estimated_frames": 5919,
+      "estimated_output_bytes": 5743051806
+    },
+    {
+      "shard_id": "L30_p01",
+      "manifest": "L30/part-001.json",
+      "group": "L30",
+      "video_count": 96,
+      "duration_seconds": 20476.0,
+      "estimated_frames": 10261,
+      "estimated_output_bytes": 9955981514
+    }
+  ],
+  "bytes_per_frame": 970274.0,
+  "estimated_output_bytes": 228443251108
+}

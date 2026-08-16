@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 
 from .pipeline import (
     build_jobs,
     discover_videos,
+    load_video_manifest,
     merge_completed_metadata,
     result_as_dict,
     run_jobs,
+    write_success_marker,
 )
 
 
@@ -27,7 +30,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--input",
         type=Path,
         default=DATA_DIR / "unzipped" / "video",
-        help="directory containing source videos",
+        help="directory containing source videos (searched recursively)",
+    )
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        help="shard manifest produced by python -m keyframe_extraction.plan",
+    )
+    parser.add_argument(
+        "--run-dir",
+        type=Path,
+        help="place every output for this shard below one directory",
     )
     parser.add_argument(
         "--output",
@@ -56,8 +69,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--interval",
         type=float,
-        default=2.0,
-        help="seconds between extracted frames (default: 2)",
+        help="seconds between extracted frames (default: manifest value or 2)",
     )
     parser.add_argument(
         "--workers",
@@ -105,19 +117,58 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    if args.manifest and (args.video or args.start != 0 or args.limit is not None):
+        parser.error("--manifest cannot be combined with --video, --start, or --limit")
+
+    selected_videos = args.video
+    manifest_interval = None
+    if args.manifest:
+        try:
+            selected_videos, manifest_interval = load_video_manifest(
+                args.manifest.expanduser()
+            )
+        except ValueError as error:
+            parser.error(str(error))
+
+    interval = args.interval
+    if interval is None:
+        interval = manifest_interval if manifest_interval is not None else 2.0
+    elif manifest_interval is not None and not math.isclose(
+        interval, manifest_interval, rel_tol=0, abs_tol=1e-9
+    ):
+        parser.error(
+            f"--interval {interval} does not match manifest interval "
+            f"{manifest_interval}"
+        )
+
+    if args.run_dir:
+        run_dir = args.run_dir.expanduser()
+        output_root = run_dir / "keyframes"
+        metadata_dir = run_dir / "frame_metadata"
+        status_dir = run_dir / "extraction_status"
+        merged_metadata = run_dir / "frames_metadata_v2.json"
+        success_marker = run_dir / "_SUCCESS.json"
+        success_marker.unlink(missing_ok=True)
+    else:
+        output_root = args.output.expanduser()
+        metadata_dir = args.metadata_dir.expanduser()
+        status_dir = args.status_dir.expanduser()
+        merged_metadata = args.merged_metadata.expanduser()
+        success_marker = None
+
     try:
         videos = discover_videos(
             args.input.expanduser(),
-            selected_videos=args.video,
+            selected_videos=selected_videos,
             start=args.start,
             limit=args.limit,
         )
         jobs = build_jobs(
             videos,
-            output_root=args.output.expanduser(),
-            metadata_dir=args.metadata_dir.expanduser(),
-            status_dir=args.status_dir.expanduser(),
-            interval=args.interval,
+            output_root=output_root,
+            metadata_dir=metadata_dir,
+            status_dir=status_dir,
+            interval=interval,
             force=args.force,
         )
         results = run_jobs(jobs, args.workers)
@@ -127,15 +178,15 @@ def main(argv: list[str] | None = None) -> int:
     merge_summary = None
     if not args.no_merge:
         video_count, frame_count, intervals = merge_completed_metadata(
-            args.metadata_dir.expanduser().resolve(),
-            args.status_dir.expanduser().resolve(),
-            args.merged_metadata.expanduser().resolve(),
+            metadata_dir.resolve(),
+            status_dir.resolve(),
+            merged_metadata.resolve(),
         )
         merge_summary = {
             "videos": video_count,
             "frames": frame_count,
             "intervals": intervals,
-            "path": str(args.merged_metadata.expanduser().resolve()),
+            "path": str(merged_metadata.resolve()),
         }
 
     counts = {
@@ -148,6 +199,8 @@ def main(argv: list[str] | None = None) -> int:
         "results": [result_as_dict(result) for result in results],
         "merged_metadata": merge_summary,
     }
+    if success_marker is not None and not counts["failed"] and not counts["locked"]:
+        write_success_marker(success_marker, summary)
 
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))

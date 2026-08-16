@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "shard_id": "L21_p02",
+  "group": "L21",
+  "part": 2,
+  "part_count": 2,
+  "interval_seconds": 2.0,
+  "target_duration_seconds": 20700.0,
+  "duration_seconds": 16468.0,
+  "estimated_frames": 8236,
+  "videos": [
+    {
+      "video_id": "L21_V016",
+      "filename": "L21_V016.mp4",
+      "duration_seconds": 1055.0
+    },
+    {
+      "video_id": "L21_V017",
+      "filename": "L21_V017.mp4",
+      "duration_seconds": 950.0
+    },
+    {
+      "video_id": "L21_V018",
+      "filename": "L21_V018.mp4",
+      "duration_seconds": 1144.0
+    },
+    {
+      "video_id": "L21_V019",
+      "filename": "L21_V019.mp4",
+      "duration_seconds": 1101.0
+    },
+    {
+      "video_id": "L21_V021",
+      "filename": "L21_V021.mp4",
+      "duration_seconds": 1030.0
+    },
+    {
+      "video_id": "L21_V022",
+      "filename": "L21_V022.mp4",
+      "duration_seconds": 978.0
+    },
+    {
+      "video_id": "L21_V023",
+      "filename": "L21_V023.mp4",
+      "duration_seconds": 1180.0
+    },
+    {
+      "video_id": "L21_V024",
+      "filename": "L21_V024.mp4",
+      "duration_seconds": 1202.0
+    },
+    {
+      "video_id": "L21_V025",
+      "filename": "L21_V025.mp4",
+      "duration_seconds": 1180.0
+    },
+    {
+      "video_id": "L21_V026",
+      "filename": "L21_V026.mp4",
+      "duration_seconds": 1152.0
+    },
+    {
+      "video_id": "L21_V027",
+      "filename": "L21_V027.mp4",
+      "duration_seconds": 1160.0
+    },
+    {
+      "video_id": "L21_V028",
+      "filename": "L21_V028.mp4",
+      "duration_seconds": 1019.0
+    },
+    {
+      "video_id": "L21_V029",
+      "filename": "L21_V029.mp4",
+      "duration_seconds": 1156.0
+    },
+    {
+      "video_id": "L21_V030",
+      "filename": "L21_V030.mp4",
+      "duration_seconds": 1060.0
+    },
+    {
+      "video_id": "L21_V031",
+      "filename": "L21_V031.mp4",
+      "duration_seconds": 1101.0
+    }
+  ],
+  "estimated_output_bytes": 7991176664
+}

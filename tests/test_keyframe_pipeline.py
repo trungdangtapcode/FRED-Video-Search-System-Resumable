@@ -9,9 +9,15 @@ from keyframe_extraction.pipeline import (
     build_jobs,
     discover_videos,
     extract_video_job,
+    load_video_manifest,
     merge_completed_metadata,
     run_jobs,
     validate_completed_job,
+)
+from keyframe_extraction.planning import (
+    VideoInfo,
+    plan_video_shards,
+    write_shard_plan,
 )
 
 
@@ -32,6 +38,76 @@ class DiscoverVideosTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             with self.assertRaisesRegex(ValueError, "Videos not found: missing"):
                 discover_videos(Path(temp_dir), selected_videos=["missing"])
+
+    def test_discovers_videos_recursively(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            nested = root / "L21"
+            nested.mkdir()
+            (nested / "L21_V001.mp4").touch()
+
+            videos = discover_videos(root)
+
+            self.assertEqual([path.name for path in videos], ["L21_V001.mp4"])
+
+
+class ShardManifestTests(unittest.TestCase):
+    def test_plans_balanced_parts_without_mixing_groups(self):
+        videos = [
+            VideoInfo("L21_V001", "L21_V001.mp4", 6),
+            VideoInfo("L21_V002", "L21_V002.mp4", 6),
+            VideoInfo("L21_V003", "L21_V003.mp4", 6),
+            VideoInfo("L22_V001", "L22_V001.mp4", 2),
+        ]
+
+        shards = plan_video_shards(videos, target_duration_seconds=10)
+
+        self.assertEqual([shard.shard_id for shard in shards], [
+            "L21_p01",
+            "L21_p02",
+            "L22_p01",
+        ])
+        selected = [video.video_id for shard in shards for video in shard.videos]
+        self.assertEqual(selected, [
+            "L21_V001",
+            "L21_V002",
+            "L21_V003",
+            "L22_V001",
+        ])
+        self.assertEqual(len(selected), len(set(selected)))
+
+    def test_written_manifest_is_accepted_by_extractor(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            shards = plan_video_shards(
+                [VideoInfo("L21_V001", "L21_V001.mp4", 10)],
+                target_duration_seconds=20,
+            )
+            index = write_shard_plan(
+                shards,
+                output_dir=root,
+                interval_seconds=2,
+                target_duration_seconds=20,
+                bytes_per_frame=1000,
+            )
+
+            manifest_path = root / index["shards"][0]["manifest"]
+            video_ids, interval = load_video_manifest(manifest_path)
+
+            self.assertEqual(video_ids, ["L21_V001"])
+            self.assertEqual(interval, 2.0)
+            self.assertEqual(index["estimated_output_bytes"], 5000)
+
+    def test_manifest_rejects_duplicate_video_ids(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "part.json"
+            path.write_text(
+                json.dumps({"videos": ["L21_V001", "L21_V001.mp4"]}),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "duplicate video IDs"):
+                load_video_manifest(path)
 
 
 class ResumeAndMergeTests(unittest.TestCase):

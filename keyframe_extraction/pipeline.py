@@ -69,7 +69,7 @@ def discover_videos(
     videos = sorted(
         (
             path.resolve()
-            for path in input_dir.iterdir()
+            for path in input_dir.rglob("*")
             if path.is_file() and path.suffix.lower() in SUPPORTED_VIDEO_EXTENSIONS
         ),
         key=lambda path: path.name,
@@ -90,6 +90,57 @@ def discover_videos(
 
     end = None if limit is None else start + limit
     return videos[start:end]
+
+
+def load_video_manifest(path: Path) -> tuple[list[str], float | None]:
+    """Load video IDs and the optional extraction interval from a shard manifest."""
+    try:
+        with path.open("r", encoding="utf-8") as file:
+            manifest = json.load(file)
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"Cannot read manifest {path}: {error}") from error
+
+    if not isinstance(manifest, dict):
+        raise ValueError(f"Manifest must contain a JSON object: {path}")
+
+    entries = manifest.get("videos")
+    if not isinstance(entries, list) or not entries:
+        raise ValueError(f"Manifest must contain a non-empty 'videos' list: {path}")
+
+    video_ids: list[str] = []
+    for index, entry in enumerate(entries):
+        if isinstance(entry, str):
+            video_id = Path(entry).stem
+        elif isinstance(entry, dict):
+            value = entry.get("video_id") or entry.get("filename")
+            if not isinstance(value, str):
+                raise ValueError(
+                    f"Manifest video entry {index} needs 'video_id' or 'filename'"
+                )
+            video_id = Path(value).stem
+        else:
+            raise ValueError(f"Manifest video entry {index} has an invalid type")
+
+        if not video_id:
+            raise ValueError(f"Manifest video entry {index} has an empty ID")
+        video_ids.append(video_id)
+
+    duplicates = _duplicates(video_ids)
+    if duplicates:
+        raise ValueError(
+            "Manifest contains duplicate video IDs: " + ", ".join(sorted(duplicates))
+        )
+
+    interval = manifest.get("interval_seconds")
+    if interval is None:
+        return video_ids, None
+    try:
+        interval = float(interval)
+    except (TypeError, ValueError) as error:
+        raise ValueError("Manifest interval_seconds must be a number") from error
+    if not math.isfinite(interval) or interval <= 0:
+        raise ValueError("Manifest interval_seconds must be a positive number")
+    return video_ids, interval
 
 
 def build_jobs(
@@ -251,6 +302,15 @@ def merge_completed_metadata(
 
     _atomic_write_json(output_path, merged)
     return video_count, len(merged), sorted(intervals)
+
+
+def write_success_marker(path: Path, summary: dict[str, object]) -> None:
+    marker = {
+        "version": MANIFEST_VERSION,
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+        **summary,
+    }
+    _atomic_write_json(path, marker)
 
 
 def _extract_and_commit(job: ExtractionJob) -> int:
