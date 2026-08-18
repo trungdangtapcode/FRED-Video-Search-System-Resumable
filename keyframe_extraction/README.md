@@ -44,15 +44,15 @@ shard below one output directory:
   --workers 4
 ```
 
-The checked-in `manifests/aic25-b1` plan covers the full 873-video Batch 1
-media-info collection. `manifests/aic-2026` matches the 754 videos published in
-`truonghaha/aic-2026-dataset`; it has 25 shards targeting at most about 10 GB of
-PNG output each. `kaggle/keyframe_shard_template.ipynb` uses this newer plan.
+The checked-in `manifests/aic25-b1` plan contains all 873 videos in 28 shards
+targeting about 10 GB of PNG output per shard.
+`kaggle/keyframe_shard_template.ipynb` is the ready-to-import Kaggle notebook;
+duplicate it and change only its `SHARD` setting. The underlying command is:
 
 ```bash
 python -m keyframe_extraction \
   --input /kaggle/input/datasets/truonghaha/aic-2026-dataset \
-  --manifest manifests/aic-2026/L25/part-003.json \
+  --manifest manifests/aic25-b1/L25/part-003.json \
   --output /kaggle/working/data/extracted_keyframes \
   --metadata-dir /kaggle/working/data/frame_metadata \
   --status-dir /kaggle/working/data/extraction_status \
