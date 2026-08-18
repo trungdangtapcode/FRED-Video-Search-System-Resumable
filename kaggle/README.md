@@ -3,7 +3,7 @@
 Dataset: `truonghaha/aic-2026-dataset`. Use a CPU notebook with Internet on.
 
 Duplicate `keyframe_shard_template.ipynb` once per entry in
-`../manifests/aic25-b1/index.json`. Name notebooks `aic-keyframes-lxx-pnn` and
+`../manifests/aic-2026/index.json`. Name notebooks `aic-keyframes-lxx-pnn` and
 change only this line:
 
 ```python
