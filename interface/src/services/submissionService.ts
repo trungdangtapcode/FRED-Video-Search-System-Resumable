@@ -51,8 +51,6 @@ class SubmissionService {
         video_path: data.video_path.replace(ROOT_DIR, '')
       };
 
-      alert(submissionData.video_path);
-
       const response = await fetch(`${this.baseUrl}/submit`, {
         method: 'POST',
         headers: {
@@ -118,6 +116,21 @@ class SubmissionService {
       return await response.json();
     } catch (error) {
       console.error('Error fetching all submissions:', error);
+      throw error;
+    }
+  }
+
+  async getQuestionDescriptions(): Promise<Record<string, string>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/statements`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch question descriptions');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching question descriptions:', error);
       throw error;
     }
   }

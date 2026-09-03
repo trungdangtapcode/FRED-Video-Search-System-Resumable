@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/useToast';
 
 interface GroupedSubmissions {
   question: string;
+  description: string;
   frames: QuestionSubmission[];
 }
 
@@ -190,12 +191,16 @@ const SubmissionsPage: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      const allSubmissions = await submissionService.getAllSubmissions();
+      const [allSubmissions, descriptions] = await Promise.all([
+        submissionService.getAllSubmissions(),
+        submissionService.getQuestionDescriptions(),
+      ]);
       
       // Convert the object to array format
       const groupedSubmissions: GroupedSubmissions[] = Object.entries(allSubmissions).map(
         ([question, frames]) => ({
           question,
+          description: descriptions[question] ?? '',
           frames,
         })
       );
@@ -506,6 +511,11 @@ const SubmissionsPage: React.FC = () => {
                   return null;
                 })()}
               </div>
+              {group.description && (
+                <p className="text-sm text-gray-600 leading-relaxed mb-2">
+                  {group.description}
+                </p>
+              )}
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <span className="flex items-center gap-1">
                   <Hash className="h-4 w-4" />

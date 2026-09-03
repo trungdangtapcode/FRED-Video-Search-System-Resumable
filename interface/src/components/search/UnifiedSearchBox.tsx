@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Search, Loader2 } from 'lucide-react';
-import { DEFAULT_VALUES } from '@/constants';
+import { DEFAULT_VALUES, SEARCH_TYPES } from '@/constants';
 import { TranslationService } from '@/services/translationService';
 
 interface UnifiedSearchState {
@@ -36,9 +36,16 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const hasContent = localQuery.trim() || localOcr.trim() || localAsr.trim();
+    const hasContent = localQuery.trim()
+      || (!SEARCH_TYPES.OCR.disabled && localOcr.trim())
+      || (!SEARCH_TYPES.ASR.disabled && localAsr.trim());
     if (hasContent && !searchState.isLoading) {
-      onSearch(localQuery.trim(), localOcr.trim(), localAsr.trim(), localTopK);
+      onSearch(
+        localQuery.trim(),
+        SEARCH_TYPES.OCR.disabled ? '' : localOcr.trim(),
+        SEARCH_TYPES.ASR.disabled ? '' : localAsr.trim(),
+        localTopK,
+      );
     }
   };
 
@@ -75,9 +82,16 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === 'Enter') {
         event.preventDefault();
-        const hasContent = localQuery.trim() || localOcr.trim() || localAsr.trim();
+        const hasContent = localQuery.trim()
+          || (!SEARCH_TYPES.OCR.disabled && localOcr.trim())
+          || (!SEARCH_TYPES.ASR.disabled && localAsr.trim());
         if (hasContent && !searchState.isLoading) {
-          onSearch(localQuery.trim(), localOcr.trim(), localAsr.trim(), localTopK);
+          onSearch(
+            localQuery.trim(),
+            SEARCH_TYPES.OCR.disabled ? '' : localOcr.trim(),
+            SEARCH_TYPES.ASR.disabled ? '' : localAsr.trim(),
+            localTopK,
+          );
         }
       }
       
@@ -94,7 +108,9 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
     };
   }, [localQuery, localOcr, localAsr, localTopK, searchState.isLoading, onSearch]);
 
-  const hasContent = localQuery.trim() || localOcr.trim() || localAsr.trim();
+  const hasContent = localQuery.trim()
+    || (!SEARCH_TYPES.OCR.disabled && localOcr.trim())
+    || (!SEARCH_TYPES.ASR.disabled && localAsr.trim());
 
   return (
     <Card className="w-full">
@@ -127,14 +143,14 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
           {/* OCR Text */}
           <div className="space-y-1">
             <label htmlFor="ocr" className="text-[10px] text-muted-foreground">
-              OCR Text (optional)
+              OCR Text ({SEARCH_TYPES.OCR.disabled ? 'disabled' : 'optional'})
             </label>
             <Textarea
               id="ocr"
-              placeholder="Search by text in images..."
+              placeholder={SEARCH_TYPES.OCR.disabled ? 'OCR search is disabled' : SEARCH_TYPES.OCR.placeholder}
               value={localOcr}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalOcr(e.target.value)}
-              disabled={searchState.isLoading}
+              disabled={SEARCH_TYPES.OCR.disabled}
               className="w-full text-sm min-h-[60px] resize-none text-xs leading-relaxed"
               rows={3}
 
@@ -146,14 +162,14 @@ export const UnifiedSearchBox: React.FC<UnifiedSearchBoxProps> = ({
           {/* ASR Text */}
           <div className="space-y-1">
             <label htmlFor="asr" className="text-[10px] text-muted-foreground">
-              ASR Text (optional)
+              ASR Text ({SEARCH_TYPES.ASR.disabled ? 'disabled' : 'optional'})
             </label>
             <Textarea
               id="asr"
-              placeholder="Search by speech content..."
+              placeholder={SEARCH_TYPES.ASR.disabled ? 'ASR search is disabled' : SEARCH_TYPES.ASR.placeholder}
               value={localAsr}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setLocalAsr(e.target.value)}
-              disabled={searchState.isLoading}
+              disabled={SEARCH_TYPES.ASR.disabled}
               className="w-full text-sm min-h-[60px] resize-none text-xs leading-relaxed"
               rows={3}
 

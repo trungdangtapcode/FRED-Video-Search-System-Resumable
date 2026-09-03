@@ -31,8 +31,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   // Get video URL from static server
   const getVideoUrl = (videoPath: string) => {
-    // Remove the /root prefix and add the static server base URL
-    const relativePath = videoPath.replace(ROOT_DIR, '');
+    const relativePath = videoPath.replace(ROOT_DIR, '').replace(/^\/+/, '');
     return `${API_ENDPOINTS.STATIC_SERVER}/${relativePath}`;
   };
 

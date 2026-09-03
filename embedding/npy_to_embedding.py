@@ -65,22 +65,6 @@ def normalize_embeddings(embeddings):
     return embeddings / norms
 
 if __name__ == "__main__":
-    # Example usage
-    # convert_numpy_to_faiss_index("/root/data/embedding/dinov3/frames_metadata_embeddings_20250827_120247.npy",
-    #         "/root/data/embedding/dinov3_batch1.index")
-    # concat_numpy([
-    #     "/root/data/embedding/frame_metadata_embeddings2.npy",
-    #     "/root/data/embedding/frame_metadata_btc_embeddings20250827_141708.npy"
-    # ], "/root/data/embedding/siglip2_batch1.npy")
-    # convert_numpy_to_faiss_index("/root/data/embedding/siglip2_batch1.npy",
-    #         "/root/data/embedding/siglip2_batch1.index", type='dot')
-    # convert_numpy_to_faiss_index("/root/data/embedding/siglip2_batch1_pseudo.npy",
-    #                 "/root/data/embedding/siglip2_batch1_pseudo.index", type='dot')
-    # normalized_embeddings = normalize_embeddings(np.load("/root/data/embedding/dinov3/dinov3_batch1.npy"))
-    # np.save("/root/data/embedding/dinov3/dinov3_batch1_normalized.npy", normalized_embeddings)
-    # convert_numpy_to_faiss_index("/root/data/embedding/dinov3/dinov3_batch1_normalized.npy",
-    #                 "/root/data/embedding/dinov3_batch1_normalized.index", type='dot')
-    convert_numpy_to_faiss_index("/data/root/data/embedding/embeddings_dinov3_v2.npy",
-                    "/data/root/data/embeddings_dinov3_v2.index", type='dot')
-    # convert_numpy_to_faiss_index("/data/root/data/embedding/embeddings_siglip_v2.npy",
-    #                 "/data/root/data/embeddings_siglip_v2.index", type='dot')
+    raise SystemExit(
+        "Use embedding/convert_npy_to_faiss.py for validated Qwen3-VL conversion."
+    )

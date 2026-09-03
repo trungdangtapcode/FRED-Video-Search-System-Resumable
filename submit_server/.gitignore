@@ -1,2 +1,3 @@
-submissions.json
-*.json
+submissions*.json
+statement.csv
+query-*.csv

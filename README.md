@@ -8,6 +8,36 @@ Partion ephe is temporary and will be deleted anytime.
 
 
 npm run dev
+
+## Before running on another machine
+
+Update the following machine-specific absolute paths after cloning the repository:
+
+1. In `interface/src/constants/index.ts`, set `ROOT_DIR` to the new machine's
+   absolute `data/` directory.
+2. In `submit.py`, update `FPS_PATH` and the default `json_file_path` in
+   `process_json_file()` to point to the new machine's `data/fps_dict_v2.json`
+   and `submit_server/submissions.json` files.
+
+For example, if the repository is cloned to `/workspace/FRED-Video-Search-System-Resumable`,
+use `/workspace/FRED-Video-Search-System-Resumable/data` as the data root. Do not
+commit credentials or machine-specific secrets; provide those through environment
+variables.
+
+### Files deliberately excluded from Git
+
+The root `.gitignore` excludes virtual environments, Node dependencies, build
+output, runtime logs, temporary/backup files, generated archives, submissions,
+datasets, embedding arrays, FAISS indexes, and model weights. These files are
+machine-local or generated and must not be committed to GitHub.
+
+Before migrating, back up required runtime state separately (for example, to
+R2). At minimum, preserve `submit_server/submissions.json`,
+`submit_server/statement.csv`, `data/frames_metadata_v2.json`,
+`data/fps_dict_v2.json`, and `data/embeddings_qwen3_vl_8b.index`. Recreate the
+Python virtual environments and `interface/node_modules` from their requirement
+and lock files on the destination machine.
+
 # Init
 ROOT DIR: `/root`
 ```bash
@@ -182,4 +212,3 @@ cd ../..
 ---
 
 config
-

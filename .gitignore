@@ -1,14 +1,76 @@
-/__pycache__
-__pycache__/
-*__pycache__
-/ipynb_checkpoints
-*.ipynb_checkpoints
-.ipynb_checkpoints/
-*.pyc
+# Secrets and machine-local configuration
 .env
-.venv/
-submission/
+.env.*
+!.env.example
+rclone.conf
+.rclone.conf
 
-# Local datasets and generated search artifacts can be several gigabytes.
+# Python caches, test output, and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.ipynb_checkpoints/
+.venv/
+.venv-*/
+venv/
+env/
+
+# Node and Vite dependencies/build output
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime state and logs
+.runtime/
+logs/
+*.log
+*.pid
+*.pid.lock
+
+# Temporary files and patch/editor backups
+*.orig
+*.rej
+*.bak
+*.tmp
+*~
+.DS_Store
+.idea/
+.vscode/
+
+# Generated archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Generated competition submission output
+/submission/
+
+# Local datasets, embeddings, indexes, and model weights can be many GB.
+# Keep the small documentation file tracked.
 /data/*
 !/data/README.md
+*.npy
+*.npz
+*.index
+*.faiss
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+/models/
+/checkpoints/
+/.cache/

@@ -3,7 +3,7 @@ import os
 import csv
 from collections import defaultdict
 
-FPS_PATH = "/data/root/data/fps_dict_v2.json"
+FPS_PATH = "/home/nguyentnt/a/FRED-Video-Search-System-Resumable/data/fps_dict_v2.json"
 
 with open(FPS_PATH, "r") as f:
     fps_dict = json.load(f)
@@ -204,7 +204,7 @@ def main():
     convert_json_to_csv("example_data.json")
 
 # Legacy function for backward compatibility
-def process_json_file(json_file_path="/data/root/hcmc/submit_server/submissions.json", output_dir="submission/submission"):
+def process_json_file(json_file_path="/home/nguyentnt/a/FRED-Video-Search-System-Resumable/submit_server/submissions.json", output_dir="submission/submission"):
     """
     Legacy function - use convert_json_to_csv instead
     """

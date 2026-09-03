@@ -11,6 +11,11 @@ from app.retriever_service import (
 
 main = Blueprint('main', __name__)
 
+
+@main.route('/health', methods=['GET'])
+def health():
+    return jsonify({"status": "ok", "mode": "embedding-only"})
+
 """
 Expected request body structure for /retrieve endpoint:
 {
@@ -34,25 +39,16 @@ def retrieve():
         asr = data.get("asr", "").strip() if data.get("asr") else ""
         top_k = int(data.get("top_k", 5))
         
-        # Validate that at least one of query, ocr, or asr is provided and not empty
-        if not any([query, ocr, asr]):
+        if ocr or asr:
             return jsonify({
-                "error": "At least one of 'query', 'ocr', or 'asr' parameters must be provided and not empty"
+                "error": "OCR and ASR search are disabled; provide only 'query'"
             }), 400
-        
-        # For now, using the first available text field
-        # You may need to update retrieve_metadata_from_text to handle multiple text sources
-        if query and not ocr and not asr:
-            search_text = query
-            results = retrieve_metadata_from_text(search_text, top_k)
-        elif ocr and not query and not asr:
-            search_text = ocr
-            results = retrieve_metadata_from_ocr(search_text, top_k)
-        elif asr and not query and not ocr:
-            search_text = asr
-            results = retrieve_metadata_from_asr(search_text, top_k)
-        else:
-            results = hybrid_search(query, ocr, asr, top_k, normalize_scores=True)
+        if not query:
+            return jsonify({"error": "The 'query' parameter is required"}), 400
+        if top_k < 1 or top_k > 500:
+            return jsonify({"error": "top_k must be between 1 and 500"}), 400
+
+        results = retrieve_metadata_from_text(query, top_k)
         
         return jsonify(results)
 

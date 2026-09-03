@@ -5,27 +5,41 @@ Submit Server - Flask application for collecting user questions with video frame
 
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
+import csv
 import json
 import os
-import cv2
-import tempfile
-import numpy as np
+import subprocess
 from datetime import datetime
 from io import BytesIO
+from pathlib import Path
+
+from config import FPS_VIDEO_PATH, ROOT_DIR, STATEMENTS_FILE, SUBMISSIONS_FILE
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Configuration
-SUBMISSIONS_FILE = 'submissions.json'
-PORT = 13022
+PORT = int(os.getenv("SUBMIT_PORT", "13022"))
 
-FPS_VIDEO_PATH = '/root/src/data/video_fps.json'
 with open(FPS_VIDEO_PATH, 'r') as f:
     VIDEO_FPS_DATA = json.load(f)
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+
+
+def resolve_video_path(video_path: str) -> Path:
+    """Resolve a submitted path while preventing access outside data/."""
+    data_root = Path(ROOT_DIR).resolve()
+    candidate = Path(video_path)
+    if not candidate.is_absolute() or not candidate.is_relative_to(data_root):
+        candidate = data_root / str(video_path).lstrip("/")
+    candidate = candidate.resolve()
+    try:
+        candidate.relative_to(data_root)
+    except ValueError as exc:
+        raise ValueError("Video path is outside the configured data directory") from exc
+    return candidate
 
 def load_submissions():
     """Load existing submissions from JSON file"""
@@ -37,6 +51,22 @@ def load_submissions():
             print(f"Error loading submissions: {e}")
             return {}
     return {}
+
+def load_question_descriptions():
+    """Load question descriptions keyed by question ID from statement.csv."""
+    descriptions = {}
+    try:
+        with open(STATEMENTS_FILE, 'r', encoding='utf-8-sig', newline='') as f:
+            for row in csv.reader(f):
+                if len(row) < 2:
+                    continue
+                question_id = row[0].strip()
+                description = ','.join(row[1:]).strip()
+                if question_id:
+                    descriptions[question_id] = description
+    except IOError as e:
+        print(f"Error loading question descriptions: {e}")
+    return descriptions
 
 def save_submissions(submissions):
     """Save submissions to JSON file"""
@@ -57,8 +87,6 @@ def save_submissions(submissions):
 def submit_question():
     """Submit a question with frame information"""
     try:
-        from config import ROOT_DIR
-        
         data = request.get_json()
         if data['frame_idx'] < 0:
             video_id = os.path.basename(data['video_path']).replace('.mp4', '')
@@ -79,9 +107,8 @@ def submit_question():
         # Load existing submissions
         submissions = load_submissions()
         
-        # Add ROOT_DIR back to the relative video path for storage
-        relative_video_path = data['video_path'].lstrip('/')
-        full_video_path = os.path.join(ROOT_DIR, relative_video_path)
+        # Resolve the frontend's data-relative path for storage.
+        full_video_path = str(resolve_video_path(data['video_path']))
         
         # Create frame entry with full path
         frame_entry = {
@@ -200,6 +227,14 @@ def get_submissions():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/statements', methods=['GET'])
+def get_question_descriptions():
+    """Get question descriptions keyed by question ID."""
+    try:
+        return jsonify(load_question_descriptions())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/submissions/<question>', methods=['GET'])
 def get_question_submissions(question):
     """Get submissions for a specific question"""
@@ -231,8 +266,6 @@ def get_questions():
 def delete_frame():
     """Delete a specific frame from submissions"""
     try:
-        from config import ROOT_DIR
-        
         data = request.get_json()
         
         # Validate required fields
@@ -242,8 +275,7 @@ def delete_frame():
                 return jsonify({'error': f'Missing required field: {field}'}), 400
         
         question = data['question'].strip()
-        relative_video_path = data['video_path'].lstrip('/')
-        full_video_path = os.path.join(ROOT_DIR, relative_video_path)
+        full_video_path = str(resolve_video_path(data['video_path']))
         timestamp = float(data['timestamp'])
         frame_idx = int(data['frame_idx'])
         
@@ -350,8 +382,6 @@ def get_stats():
 def extract_frame():
     """Extract frame from video at specific timestamp"""
     try:
-        from config import ROOT_DIR
-        
         relative_video_path = request.args.get('video_path')
         timestamp = request.args.get('timestamp')
         
@@ -363,34 +393,27 @@ def extract_frame():
         except ValueError:
             return jsonify({'error': 'Invalid timestamp format'}), 400
         
-        # Add ROOT_DIR back to the relative path
-        full_video_path = relative_video_path
-        # full_video_path = os.path.join(ROOT_DIR, relative_video_path.lstrip('/'))
+        full_video_path = resolve_video_path(relative_video_path)
         
         # Check if video file exists
-        if not os.path.exists(full_video_path):
+        if not full_video_path.is_file():
             return jsonify({'error': 'Video file not found'}), 404
-        
-        # Open video file
-        cap = cv2.VideoCapture(full_video_path)
-        if not cap.isOpened():
-            return jsonify({'error': 'Could not open video file'}), 500
-        
-        # Set video position to the specified timestamp
-        cap.set(cv2.CAP_PROP_POS_MSEC, timestamp * 1000)  # Convert to milliseconds
-        
-        # Read the frame
-        ret, frame = cap.read()
-        cap.release()
-        
-        if not ret:
-            return jsonify({'error': 'Could not read frame at specified timestamp'}), 500
-        
-        # Convert frame to JPEG
-        _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
-        
-        # Create BytesIO object
-        img_io = BytesIO(buffer.tobytes())
+
+        process = subprocess.run(
+            [
+                "ffmpeg", "-loglevel", "error", "-ss", str(timestamp),
+                "-i", str(full_video_path), "-frames:v", "1",
+                "-q:v", "3", "-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1",
+            ],
+            check=False,
+            capture_output=True,
+            timeout=30,
+        )
+        if process.returncode != 0 or not process.stdout:
+            message = process.stderr.decode("utf-8", errors="replace")[-500:]
+            return jsonify({'error': f'Could not extract frame: {message}'}), 500
+
+        img_io = BytesIO(process.stdout)
         img_io.seek(0)
         
         return send_file(
@@ -406,4 +429,8 @@ def extract_frame():
 if __name__ == '__main__':
     print(f"Starting Submit Server on port {PORT}")
     print(f"Submissions will be saved to: {SUBMISSIONS_FILE}")
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    app.run(
+        host=os.getenv("SUBMIT_HOST", "127.0.0.1"),
+        port=PORT,
+        debug=False,
+    )

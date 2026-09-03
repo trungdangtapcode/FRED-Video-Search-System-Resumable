@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Search, Loader2, Plus, Minus, Clock } from 'lucide-react';
-import { DEFAULT_VALUES } from '@/constants';
+import { DEFAULT_VALUES, SEARCH_TYPES } from '@/constants';
 import { TranslationService } from '@/services/translationService';
 
 interface FrameQuery {
@@ -66,10 +66,16 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const hasContent = localFrames.some(frame => 
-      frame.query.trim() || frame.ocr.trim() || frame.asr.trim()
+      frame.query.trim()
+      || (!SEARCH_TYPES.OCR.disabled && frame.ocr.trim())
+      || (!SEARCH_TYPES.ASR.disabled && frame.asr.trim())
     );
     if (hasContent && !searchState.isLoading) {
-      onSearch(localFrames, localTopK);
+      onSearch(localFrames.map(frame => ({
+        ...frame,
+        ocr: SEARCH_TYPES.OCR.disabled ? '' : frame.ocr,
+        asr: SEARCH_TYPES.ASR.disabled ? '' : frame.asr,
+      })), localTopK);
     }
   };
 
@@ -112,10 +118,16 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
       if (event.ctrlKey && event.key === 'Enter') {
         event.preventDefault();
         const hasContent = localFrames.some(frame => 
-          frame.query.trim() || frame.ocr.trim() || frame.asr.trim()
+          frame.query.trim()
+          || (!SEARCH_TYPES.OCR.disabled && frame.ocr.trim())
+          || (!SEARCH_TYPES.ASR.disabled && frame.asr.trim())
         );
         if (hasContent && !searchState.isLoading) {
-          onSearch(localFrames, localTopK);
+          onSearch(localFrames.map(frame => ({
+            ...frame,
+            ocr: SEARCH_TYPES.OCR.disabled ? '' : frame.ocr,
+            asr: SEARCH_TYPES.ASR.disabled ? '' : frame.asr,
+          })), localTopK);
         }
       }
       
@@ -136,7 +148,9 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
   }, [localFrames, localTopK, searchState.isLoading, onSearch]);
 
   const hasContent = localFrames.some(frame => 
-    frame.query.trim() || frame.ocr.trim() || frame.asr.trim()
+    frame.query.trim()
+    || (!SEARCH_TYPES.OCR.disabled && frame.ocr.trim())
+    || (!SEARCH_TYPES.ASR.disabled && frame.asr.trim())
   );
 
   return (
@@ -219,13 +233,13 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
               {/* OCR Input */}
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">
-                  OCR Text (Optional)
+                  OCR Text ({SEARCH_TYPES.OCR.disabled ? 'Disabled' : 'Optional'})
                 </label>
                 <Input
                   value={frame.ocr}
                   onChange={(e) => updateFrame(frame.id, 'ocr', e.target.value)}
-                  placeholder="Text visible in the frame..."
-                  disabled={searchState.isLoading}
+                  placeholder={SEARCH_TYPES.OCR.disabled ? 'OCR search is disabled' : SEARCH_TYPES.OCR.placeholder}
+                  disabled={SEARCH_TYPES.OCR.disabled}
                   className="text-xs"
                 />
               </div>
@@ -233,13 +247,13 @@ export const MultiFrameSearchBox: React.FC<MultiFrameSearchBoxProps> = ({
               {/* ASR Input */}
               <div className="space-y-1">
                 <label className="text-xs font-medium text-muted-foreground">
-                  ASR Text (Optional)
+                  ASR Text ({SEARCH_TYPES.ASR.disabled ? 'Disabled' : 'Optional'})
                 </label>
                 <Input
                   value={frame.asr}
                   onChange={(e) => updateFrame(frame.id, 'asr', e.target.value)}
-                  placeholder="Speech/audio content..."
-                  disabled={searchState.isLoading}
+                  placeholder={SEARCH_TYPES.ASR.disabled ? 'ASR search is disabled' : SEARCH_TYPES.ASR.placeholder}
+                  disabled={SEARCH_TYPES.ASR.disabled}
                   className="text-xs"
                 />
               </div>

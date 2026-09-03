@@ -76,4 +76,37 @@ data/extraction_status/<video-id>.done.json
 data/frames_metadata_v2.json
 ```
 
+## Import an existing shard
+
+Kaggle shard outputs can be installed without re-extracting their source
+videos. The importer validates the shard manifest and frame sequence, moves the
+PNG directories into the native layout, rewrites Kaggle paths to local absolute
+paths, and recreates resumable completion manifests:
+
+```bash
+python3 -m keyframe_extraction.import_shard \
+  --input data/keyframe_staging \
+  --manifest manifests/aic-2026/L25/part-001.json \
+  --dataset OWNER/DATASET \
+  --cleanup
+```
+
+If Kaggle's whole-dataset bundle is unavailable, the optional fallback below
+downloads exact-size files resumably without retaining a ZIP. Install the
+official `kaggle` package before using it:
+
+```bash
+python3 -m keyframe_extraction.download_kaggle_files OWNER/DATASET \
+  --output data/keyframe_staging \
+  --workers 4 \
+  --request-interval 3.5
+```
+
+After every shard is installed, validate all source videos and atomically build
+the runtime metadata and FPS lookup:
+
+```bash
+python3 -m keyframe_extraction.finalize
+```
+
 Run `.venv/bin/python -m keyframe_extraction --help` for all options.

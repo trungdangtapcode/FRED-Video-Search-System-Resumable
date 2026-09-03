@@ -8,6 +8,7 @@ import { useImageSearch } from '@/hooks/useImageSearch';
 import type { SearchType } from '@/types';
 import { Search, Layers, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SEARCH_TYPES } from '@/constants';
 
 interface SearchSidebarProps {
   onSearchResults: (results: any[], searchType: SearchType) => void;
@@ -151,9 +152,9 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ onSearchResults, o
             {searchMode === 'single' ? (
               <>
                 <p>• <strong>Text Query:</strong> Search by description</p>
-                <p>• <strong>OCR:</strong> Search text within images</p>
-                <p>• <strong>ASR:</strong> Search speech content</p>
-                <p>• At least one field must be filled</p>
+                <p>• <strong>OCR:</strong> {SEARCH_TYPES.OCR.disabled ? 'Disabled' : 'Search text within images'}</p>
+                <p>• <strong>ASR:</strong> {SEARCH_TYPES.ASR.disabled ? 'Disabled' : 'Search speech content'}</p>
+                <p>• At least one enabled field must be filled</p>
                 <p>• Results are sorted by similarity</p>
                 <p>• Maximum 500 results per search</p>
               </>

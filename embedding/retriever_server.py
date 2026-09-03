@@ -1,5 +1,6 @@
 import faiss
 import numpy as np
+import os
 from flask import Flask, request, jsonify
 from pathlib import Path
 
@@ -18,8 +19,10 @@ def load_index(name, path, use_gpu=False):
     index_map[name] = index
     dim_map[name] = index.d
 
-def load_dinov3_index(path="/data/root/data/embeddings_dinov3_v2.index"):
+def load_dinov3_index(path=None):
     """Load DINOv3 FAISS index directly"""
+    if path is None:
+        path = Path(__file__).resolve().parents[1] / "data" / "embeddings_dinov3_v2.index"
     try:
         load_index("dinov3", path, use_gpu=False)
         print(f"Loaded DINOv3 index from {path}")
@@ -40,6 +43,12 @@ def search():
         return jsonify({"error": f"Index for '{name}' not found"}), 404
 
     index = index_map[name]
+    if query_embeds.ndim != 2 or query_embeds.shape[1] != index.d:
+        return jsonify({
+            "error": f"Expected query shape [N, {index.d}], got {list(query_embeds.shape)}"
+        }), 400
+    if top_k < 1:
+        return jsonify({"error": "top_k must be positive"}), 400
     scores, indices = index.search(query_embeds, top_k)
     print("indices: ", indices)
     print("num of vector in db: ", index.ntotal)
@@ -103,23 +112,23 @@ def search_frame_similarity():
     metadata_index = int(data["metadata_index"])  # Index in the metadata list
     top_k = int(data.get("top_k", 10))
     
-    if "dinov3" not in index_map:
-        return jsonify({"error": "DINOv3 index not loaded"}), 500
+    if "qwen3_vl" not in index_map:
+        return jsonify({"error": "Qwen3-VL index not loaded"}), 500
     
     try:
-        dinov3_index = index_map["dinov3"]
+        embedding_index = index_map["qwen3_vl"]
         
         # Check if metadata_index is valid
-        if metadata_index >= dinov3_index.ntotal or metadata_index < 0:
-            return jsonify({"error": f"Metadata index {metadata_index} out of range [0, {dinov3_index.ntotal-1}]"}), 400
+        if metadata_index >= embedding_index.ntotal or metadata_index < 0:
+            return jsonify({"error": f"Metadata index {metadata_index} out of range [0, {embedding_index.ntotal-1}]"}), 400
         
         # Get the embedding for the specified frame from the index
         # We need to reconstruct the embedding from the index
-        query_embedding = dinov3_index.reconstruct(metadata_index)
+        query_embedding = embedding_index.reconstruct(metadata_index)
         query_embedding = query_embedding.reshape(1, -1)  # Shape: [1, D]
         
         # Search for similar frames
-        scores, indices = dinov3_index.search(query_embedding, top_k + 1)  # +1 to include self
+        scores, indices = embedding_index.search(query_embedding, top_k + 1)  # +1 to include self
         
         # Remove the query frame itself from results
         result_indices = []
@@ -145,14 +154,30 @@ def search_frame_similarity():
 
 @app.route("/hello", methods=["GET"])
 def hello_word():
-	return "Hello, this is the Retriever Server!"
+		return "Hello, this is the Retriever Server!"
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    index = index_map.get("qwen3_vl")
+    return jsonify({
+        "status": "ok" if index is not None else "not_ready",
+        "vectors": 0 if index is None else index.ntotal,
+        "dimension": None if index is None else index.d,
+    }), 200 if index is not None else 503
 
 if __name__ == "__main__":
-    # Optional preload:
-    # load_index("siglip2", "/data/root/data/embeddings_siglip_v2.index")
-    load_index("siglip2", "/root/embeddings_siglip_v2.index")
-    
-    # Load DINOv3 index
-    # load_dinov3_index()
-    
-    app.run(host="0.0.0.0", port=50239, debug=True)
+    project_root = Path(__file__).resolve().parents[1]
+    index_path = Path(
+        os.getenv(
+            "EMBEDDING_INDEX_PATH",
+            project_root / "data" / "embeddings_qwen3_vl_8b.index",
+        )
+    )
+    load_index("qwen3_vl", index_path)
+    print(f"Loaded {index_map['qwen3_vl'].ntotal} Qwen3-VL vectors from {index_path}")
+    app.run(
+        host=os.getenv("RETRIEVER_HOST", "127.0.0.1"),
+        port=int(os.getenv("RETRIEVER_PORT", "50239")),
+        debug=False,
+    )

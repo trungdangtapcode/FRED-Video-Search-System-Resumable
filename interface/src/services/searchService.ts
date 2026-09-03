@@ -35,7 +35,7 @@ export class SearchService {
       
       // Check if it's a network error
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        throw new Error('Cannot connect to search server. Please make sure the backend server is running on port 5000.');
+        throw new Error('Cannot connect to the embedding search API through /api.');
       }
       
       throw new Error(error instanceof Error ? error.message : 'Failed to search');
@@ -75,7 +75,7 @@ export class SearchService {
       
       // Check if it's a network error
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        throw new Error('Cannot connect to search server. Please make sure the backend server is running on port 5000.');
+        throw new Error('Cannot connect to the embedding search API through /api.');
       }
       
       throw new Error(error instanceof Error ? error.message : 'Failed to search');
@@ -83,9 +83,7 @@ export class SearchService {
   }
 
   static getImageUrl(framePath: string): string {
-    // Convert the local path to the static server URL
-    // Remove the /home/root prefix and add the static server base URL
-    const relativePath = framePath.replace(ROOT_DIR, '');
+    const relativePath = framePath.replace(ROOT_DIR, '').replace(/^\/+/, '');
     return `${API_ENDPOINTS.STATIC_SERVER}/${relativePath}`;
   }
 

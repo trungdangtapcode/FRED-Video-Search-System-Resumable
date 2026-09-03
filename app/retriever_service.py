@@ -1,24 +1,25 @@
 import json
-from .config import FRAMES_METADATA_PATH, MODEL_NAME, DEVICE
+from .config import (
+    DEVICE,
+    FRAMES_METADATA_PATH,
+    MODEL_NAME,
+    MODEL_REVISION,
+    RETRIEVER_URL,
+)
 
-# Lazy-load and initialize once (using importlib)
-from embedding import image_embedder, text_embedder, retriever_client
-from text_search import text_search_client
+from embedding import retriever_client
+from embedding.qwen_vl_embedder import QwenVLEmbedder
 
-SEARCH_URL = "http://localhost:50239"
-TEXT_URL = "http://localhost:50298"
+SEARCH_URL = RETRIEVER_URL
 
-# ima# The code snippet you provided is commented out, so it is not being executed. However, based on
-# the commented lines, it seems like the intention was to create instances of
-# `image_embedder.ImageEmbedder`, `text_embedder.TextEmbedder`, and
-# `retriever_client.RetrieverClient` classes.
-image_embedder_instance = image_embedder.ImageEmbedder(model_name=MODEL_NAME, device=DEVICE)
-
-text_embedder_instance = text_embedder.TextEmbedder(image_embedder_instance)
-
-retriever_client_instance = retriever_client.RetrieverClient(text_embedder_instance, server_url=SEARCH_URL)
-
-text_search_instance = text_search_client.TextSearchClient(server_url=TEXT_URL)
+embedder_instance = QwenVLEmbedder(
+    model_name=MODEL_NAME,
+    revision=MODEL_REVISION,
+    device=DEVICE,
+)
+retriever_client_instance = retriever_client.RetrieverClient(
+    embedder_instance, server_url=SEARCH_URL
+)
 
 # Load metadata
 with open(FRAMES_METADATA_PATH, 'r') as f:
@@ -27,7 +28,7 @@ with open(FRAMES_METADATA_PATH, 'r') as f:
 def retrieve_metadata_from_text(text: str, top_k: int = 5, return_scores: bool = False):
     indexs = retriever_client_instance.retrieve(
         texts=text,
-        model_name='siglip2',
+        model_name='qwen3_vl',
         top_k=top_k
     )
     idx = indexs[0][0]
@@ -47,53 +48,10 @@ def retrieve_metadata_from_text(text: str, top_k: int = 5, return_scores: bool =
     return results
 
 def retrieve_metadata_from_asr(text: str, top_k: int = 5, return_scores: bool = False, need_pop = True):
-    indexs = text_search_instance.search(
-        query_text = text, 
-        index_name='asr_index', 
-        top_k=top_k
-    )
-    
-    if need_pop:
-        for x in indexs:
-            x.pop('id')
-            x.pop('text')
-    
-    if return_scores:
-        return [(metadata[int(x['idx'])], x['score'], x['idx']) for x in indexs]
-
-    # Add metadata_index to each result
-    results = []
-    for x in indexs:
-        frame_data = metadata[int(x['idx'])].copy()
-        frame_data['metadata_index'] = int(x['idx'])
-        results.append(frame_data)
-    
-    return results
+    raise RuntimeError("ASR search is disabled in embedding-only mode")
 
 def retrieve_metadata_from_ocr(text: str, top_k: int = 5, return_scores: bool = False, need_pop = True):
-    indexs = text_search_instance.search(
-        query_text = text, 
-        index_name='ocr_index', 
-        top_k=top_k
-    )
-    print("OCR search ok!")
-    
-    if need_pop:
-        for x in indexs:
-            x.pop('id')
-            x.pop('text')
-    
-    if return_scores:
-        return [(metadata[int(x['idx'])], x['score'], x['idx']) for x in indexs]
-
-    # Add metadata_index to each result
-    results = []
-    for x in indexs:
-        frame_data = metadata[int(x['idx'])].copy()
-        frame_data['metadata_index'] = int(x['idx'])
-        results.append(frame_data)
-    
-    return results
+    raise RuntimeError("OCR search is disabled in embedding-only mode")
 
 def retrieve_metadata_from_image(image_data, top_k: int = 5, return_scores: bool = False):
     """
@@ -109,7 +67,7 @@ def retrieve_metadata_from_image(image_data, top_k: int = 5, return_scores: bool
     """
     try:
         # Generate embedding for the uploaded image
-        image_embedding = image_embedder_instance.embed_single_image(image_data)
+        image_embedding = embedder_instance.embed_single_image(image_data)
         
         # Convert to the format expected by retriever_client
         import numpy as np
@@ -118,7 +76,7 @@ def retrieve_metadata_from_image(image_data, top_k: int = 5, return_scores: bool
         # Use retriever client to search (simulating text search structure)
         import requests
         payload = {
-            "model_name": 'siglip2',
+            "model_name": 'qwen3_vl',
             "query_embeds": query_embeddings.tolist(),
             "top_k": top_k
         }

@@ -3,10 +3,13 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import os
+from pathlib import Path
 
 app = FastAPI()
 
-ROOT_DIR = "/"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+ROOT_DIR = Path(os.getenv("STATIC_ROOT", PROJECT_ROOT / "data")).resolve()
 
 # --- CORS settings ---
 app.add_middleware(
@@ -36,10 +39,14 @@ class CORSEnabledStaticFiles(StaticFiles):
 
 app.mount(
     "/",
-    CORSEnabledStaticFiles(directory=ROOT_DIR, html=True, follow_symlink=True),
+    CORSEnabledStaticFiles(directory=str(ROOT_DIR), html=True, follow_symlink=True),
     name="static",
 )
 
 if __name__ == "__main__":
-    # uvicorn.run(app, host="0.0.0.0", port=8069, reload=True)
-    uvicorn.run("static_server.run:app", host="0.0.0.0", port=8069, reload=True)
+    uvicorn.run(
+        "static_server.run:app",
+        host=os.getenv("STATIC_HOST", "127.0.0.1"),
+        port=int(os.getenv("STATIC_PORT", "8069")),
+        reload=False,
+    )

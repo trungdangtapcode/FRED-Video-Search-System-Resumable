@@ -13,4 +13,26 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    host: '127.0.0.1',
+    port: 5174,
+    strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:50313',
+        changeOrigin: true,
+        rewrite: (requestPath) => requestPath.replace(/^\/api/, ''),
+      },
+      '/media': {
+        target: 'http://127.0.0.1:8069',
+        changeOrigin: true,
+        rewrite: (requestPath) => requestPath.replace(/^\/media/, ''),
+      },
+      '/submit-api': {
+        target: 'http://127.0.0.1:13022',
+        changeOrigin: true,
+        rewrite: (requestPath) => requestPath.replace(/^\/submit-api/, ''),
+      },
+    },
+  },
 })

@@ -1,15 +1,14 @@
 // API endpoints
 export const API_ENDPOINTS = {
-  SEARCH: 'http://111.237.107.89:50313/retrieve',
-  STATIC_SERVER: 'http://103.155.161.181:13021',
-  SUBMIT_SERVER: 'http://103.155.161.181:13022',
-  // COMPETITION_SUBMIT: 'http://103.155.161.181:13023',
-  TRANSLATE_BASE_URL: 'http://103.155.161.181:13023',
-  SEARCH_BASE_URL: 'http://111.237.107.89:50313'
+  SEARCH: '/api/retrieve',
+  STATIC_SERVER: '/media',
+  SUBMIT_SERVER: '/submit-api',
+  TRANSLATE_BASE_URL: 'http://localhost:13023',
+  SEARCH_BASE_URL: '/api'
 } as const;
 
 
-export const DIRECTLY_DEFAULT = true;
+export const DIRECTLY_DEFAULT = false;
 
 // Default values
 export const DEFAULT_VALUES = {
@@ -40,4 +39,4 @@ export const SEARCH_TYPES = {
 } as const;
 
 
-export const ROOT_DIR = "/data/root"
+export const ROOT_DIR = "/home/nguyentnt/a/FRED-Video-Search-System-Resumable/data"
