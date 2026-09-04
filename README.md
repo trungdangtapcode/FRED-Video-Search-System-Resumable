@@ -38,6 +38,11 @@ R2). At minimum, preserve `submit_server/submissions.json`,
 Python virtual environments and `interface/node_modules` from their requirement
 and lock files on the destination machine.
 
+For storage-constrained or multi-machine media transfer, follow
+[`R2_DISTRIBUTED_UPLOAD.md`](R2_DISTRIBUTED_UPLOAD.md). The uploader keeps one
+source archive at a time, preserves the repository layout in R2, verifies each
+object, and supports non-overlapping worker assignments.
+
 # Init
 ROOT DIR: `/root`
 ```bash
