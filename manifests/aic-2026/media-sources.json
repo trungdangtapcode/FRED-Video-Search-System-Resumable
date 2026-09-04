@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "video_archives": [
+    {"name": "Videos_L21_a.zip", "url": "https://aic-data.ledo.io.vn/Videos_L21_a.zip"},
+    {"name": "Videos_L22_a.zip", "url": "https://aic-data.ledo.io.vn/Videos_L22_a.zip"},
+    {"name": "Videos_L23_a.zip", "url": "https://aic-data.ledo.io.vn/Videos_L23_a.zip"},
+    {"name": "Videos_L24_a.zip", "url": "https://aic-data.ledo.io.vn/Videos_L24_a.zip"},
+    {"name": "Videos_L25_a.zip", "url": "https://aic-data.ledo.io.vn/Videos_L25_a.zip"},
+    {"name": "Videos_L26_a.zip", "url": "https://aic-data.ledo.io.vn/Videos_L26_a.zip"},
+    {"name": "Videos_L26_b.zip", "url": "https://aic-data.ledo.io.vn/Videos_L26_b.zip"},
+    {"name": "Videos_L26_c.zip", "url": "https://aic-data.ledo.io.vn/Videos_L26_c.zip"},
+    {"name": "Videos_L26_d.zip", "url": "https://aic-data.ledo.io.vn/Videos_L26_d.zip"},
+    {"name": "Videos_L26_e.zip", "url": "https://aic-data.ledo.io.vn/Videos_L26_e.zip"},
+    {"name": "Videos_L27_a.zip", "url": "https://aic-data.ledo.io.vn/Videos_L27_a.zip"},
+    {"name": "Videos_L28_a.zip", "url": "https://aic-data.ledo.io.vn/Videos_L28_a.zip"},
+    {"name": "Videos_L29_a.zip", "url": "https://aic-data.ledo.io.vn/Videos_L29_a.zip"},
+    {"name": "Videos_L30_a.zip", "url": "https://aic-data.ledo.io.vn/Videos_L30_a.zip"}
+  ],
+  "media_info_archives": [
+    {"name": "media-info-aic25-b1.zip", "url": "https://aic-data.ledo.io.vn/media-info-aic25-b1.zip"}
+  ],
+  "keyframe_shards": [
+    {"shard_id": "L21_p01", "dataset": "trungdangtapcode/aic-keyframes-l21-p01-output", "frame_count": 7737, "video_count": 14},
+    {"shard_id": "L21_p02", "dataset": "trungdangtapcode/aic-keyframes-l21-p02-output", "frame_count": 8241, "video_count": 15},
+    {"shard_id": "L22_p01", "dataset": "trungdangtapcode/aic-keyframes-l22-p01-output", "frame_count": 8852, "video_count": 15},
+    {"shard_id": "L22_p02", "dataset": "trungdangtapcode/aic-keyframes-l22-p02-output", "frame_count": 9518, "video_count": 16},
+    {"shard_id": "L23_p01", "dataset": "trungdangtapcode/aic-keyframes-l23-p01-output", "frame_count": 4872, "video_count": 25},
+    {"shard_id": "L24_p01", "dataset": "trungdangtapcode/aic-keyframes-l24-p01-output", "frame_count": 5525, "video_count": 20},
+    {"shard_id": "L24_p02", "dataset": "trungdangtapcode/aic-keyframes-l24-p02-output", "frame_count": 5565, "video_count": 23},
+    {"shard_id": "L25_p01", "dataset": "trungdangtapcode/aic-keyframes-l25-p01-output", "frame_count": 9134, "video_count": 13},
+    {"shard_id": "L25_p02", "dataset": "trungdangtapcode/aic-keyframes-l25-p02-output", "frame_count": 9229, "video_count": 13},
+    {"shard_id": "L25_p03", "dataset": "trungdangtapcode/aic-keyframes-l25-p03-output", "frame_count": 9787, "video_count": 14},
+    {"shard_id": "L25_p04", "dataset": "trungdangtapcode/aic-keyframes-l25-p04-output", "frame_count": 8791, "video_count": 11},
+    {"shard_id": "L25_p05", "dataset": "trungdangtapcode/aic-keyframes-l25-p05-output", "frame_count": 9458, "video_count": 13},
+    {"shard_id": "L25_p06", "dataset": "trungdangtapcode/aic-keyframes-l25-p06-output", "frame_count": 9723, "video_count": 13},
+    {"shard_id": "L25_p07", "dataset": "trungdangtapcode/aic-keyframes-l25-p07-output", "frame_count": 9116, "video_count": 11},
+    {"shard_id": "L26_p01", "dataset": "trungdangtapcode/aic-keyframes-l26-p01-output", "frame_count": 9869, "video_count": 62},
+    {"shard_id": "L26_p02", "dataset": "trungdangtapcode/aic-keyframes-l26-p02-output", "frame_count": 9894, "video_count": 61},
+    {"shard_id": "L26_p03", "dataset": "trungdangtapcode/aic-keyframes-l26-p03-output", "frame_count": 9911, "video_count": 61},
+    {"shard_id": "L26_p04", "dataset": "trungdangtapcode/aic-keyframes-l26-p04-output", "frame_count": 9837, "video_count": 62},
+    {"shard_id": "L26_p05", "dataset": "trungdangtapcode/aic-keyframes-l26-p05-output", "frame_count": 9930, "video_count": 62},
+    {"shard_id": "L26_p06", "dataset": "trungdangtapcode/aic-keyframes-l26-p06-output", "frame_count": 9898, "video_count": 64},
+    {"shard_id": "L26_p07", "dataset": "trungdangtapcode/aic-keyframes-l26-p07-output", "frame_count": 9809, "video_count": 63},
+    {"shard_id": "L26_p08", "dataset": "trungdangtapcode/aic-keyframes-l26-p08-output", "frame_count": 9901, "video_count": 63},
+    {"shard_id": "L27_p01", "dataset": "trungdangtapcode/aic-keyframes-l27-p01-output", "frame_count": 4723, "video_count": 16},
+    {"shard_id": "L28_p01", "dataset": "trungdangtapcode/aic-keyframes-l28-p01-output", "frame_count": 6878, "video_count": 12},
+    {"shard_id": "L28_p02", "dataset": "trungdangtapcode/aic-keyframes-l28-p02-output", "frame_count": 6781, "video_count": 12},
+    {"shard_id": "L29_p01", "dataset": "trungdangtapcode/aic-keyframes-l29-p01-output", "frame_count": 6405, "video_count": 12},
+    {"shard_id": "L29_p02", "dataset": "trungdangtapcode/aic-keyframes-l29-p02-output", "frame_count": 5921, "video_count": 11},
+    {"shard_id": "L30_p01", "dataset": "trungdangtapcode/aic-keyframes-l30-p01-output", "frame_count": 10283, "video_count": 96}
+  ]
+}

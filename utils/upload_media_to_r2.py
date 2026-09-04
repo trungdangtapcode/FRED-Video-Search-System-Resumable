@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import contextlib
+import functools
 import json
 import logging
 import mimetypes
@@ -36,6 +37,7 @@ import requests
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "data"
 MANIFEST_ROOT = PROJECT_ROOT / "manifests" / "aic-2026"
+DEFAULT_SOURCE_MANIFEST = MANIFEST_ROOT / "media-sources.json"
 DEFAULT_STAGE_DIR = DATA_DIR / "r2_upload_stage"
 DEFAULT_STATE_DIR = PROJECT_ROOT / ".runtime" / "r2_media_upload"
 DEFAULT_MAX_TEMP_BYTES = 30_000_000_000
@@ -95,6 +97,43 @@ def normalized_prefix(value: str) -> str:
 
 def read_nonblank_lines(path: Path) -> list[str]:
     return [line.strip() for line in path.read_text().splitlines() if line.strip() and not line.lstrip().startswith("#")]
+
+
+@functools.lru_cache(maxsize=4)
+def load_source_manifest(path: Path) -> dict:
+    payload = json.loads(path.read_text())
+    if payload.get("version") != 1:
+        raise RuntimeError(f"unsupported media source manifest version in {path}")
+    if len(payload.get("video_archives", [])) != 14:
+        raise RuntimeError(f"media source manifest must contain 14 video archives: {path}")
+    if len(payload.get("media_info_archives", [])) != 1:
+        raise RuntimeError(f"media source manifest must contain one media-info archive: {path}")
+    if len(payload.get("keyframe_shards", [])) != 28:
+        raise RuntimeError(f"media source manifest must contain 28 keyframe shards: {path}")
+    return payload
+
+
+def configured_video_urls(args: argparse.Namespace) -> list[str]:
+    if args.video_urls:
+        return read_nonblank_lines(Path(args.video_urls))
+    payload = load_source_manifest(Path(args.source_manifest).resolve())
+    return [entry["url"] for entry in payload["video_archives"] + payload["media_info_archives"]]
+
+
+def configured_keyframe_datasets(args: argparse.Namespace) -> list[str]:
+    if args.keyframe_urls:
+        urls = read_nonblank_lines(Path(args.keyframe_urls))
+        return [url.split("/datasets/", 1)[1].strip("/") for url in urls]
+    payload = load_source_manifest(Path(args.source_manifest).resolve())
+    return [entry["dataset"] for entry in payload["keyframe_shards"]]
+
+
+def keyframe_source_entry(args: argparse.Namespace, shard_id: str) -> dict:
+    payload = load_source_manifest(Path(args.source_manifest).resolve())
+    matches = [entry for entry in payload["keyframe_shards"] if entry["shard_id"] == shard_id]
+    if len(matches) != 1:
+        raise RuntimeError(f"missing or duplicate source entry for {shard_id}")
+    return matches[0]
 
 
 def directory_bytes(path: Path) -> int:
@@ -426,6 +465,7 @@ def recovered_video_summary(
 
 
 def recovered_keyframe_summary(
+    args: argparse.Namespace,
     pool: R2ClientPool,
     manifest_key: str,
     dataset: str,
@@ -434,8 +474,8 @@ def recovered_keyframe_summary(
     if pool.head(manifest_key) is None:
         return None
     records = download_manifest(pool, manifest_key)
-    status = json.loads((DATA_DIR / "keyframe_import_status" / f"{shard_id}.done.json").read_text())
-    expected_count = int(status["frame_count"])
+    source_entry = keyframe_source_entry(args, shard_id)
+    expected_count = int(source_entry["frame_count"])
     if len(records) != expected_count:
         raise RuntimeError(
             f"R2 manifest count mismatch for {shard_id}: {len(records):,} != {expected_count:,}"
@@ -586,7 +626,7 @@ def run_videos(
     stage_dir: Path,
     state_dir: Path,
 ) -> dict:
-    urls = read_nonblank_lines(Path(args.video_urls))
+    urls = configured_video_urls(args)
     expected_videos = load_expected_videos()
     found_videos: set[str] = set()
     archive_summaries: list[dict] = []
@@ -669,14 +709,14 @@ def shard_manifest_path(shard_id: str) -> Path:
 
 
 def keyframe_entries(
+    args: argparse.Namespace,
     archive: Path,
     shard_id: str,
 ) -> tuple[list[tuple[str, str, int, int]], int, set[str]]:
     manifest = json.loads(shard_manifest_path(shard_id).read_text())
     expected_videos = {str(video["video_id"]) for video in manifest["videos"]}
-    status_path = DATA_DIR / "keyframe_import_status" / f"{shard_id}.done.json"
-    status = json.loads(status_path.read_text())
-    expected_count = int(status["frame_count"])
+    source_entry = keyframe_source_entry(args, shard_id)
+    expected_count = int(source_entry["frame_count"])
     entries: list[tuple[str, str, int, int]] = []
     destinations: set[str] = set()
     found_videos: set[str] = set()
@@ -757,13 +797,14 @@ class KeyframeWorker:
 
 
 def upload_keyframe_archive(
+    args: argparse.Namespace,
     archive: Path,
     dataset: str,
     shard_id: str,
     pool: R2ClientPool,
     workers: int,
 ) -> tuple[list[dict], set[str]]:
-    entries, expected_count, expected_videos = keyframe_entries(archive, shard_id)
+    entries, expected_count, expected_videos = keyframe_entries(args, archive, shard_id)
     LOG.info(
         "validated %s: %d keyframes across %d videos",
         shard_id,
@@ -809,8 +850,7 @@ def run_keyframes(
     stage_dir: Path,
     state_dir: Path,
 ) -> dict:
-    dataset_urls = read_nonblank_lines(Path(args.keyframe_urls))
-    datasets = [url.split("/datasets/", 1)[1].strip("/") for url in dataset_urls]
+    datasets = configured_keyframe_datasets(args)
     shard_ids = [shard_from_dataset(dataset) for dataset in datasets]
     expected_order = [
         json.loads(path.read_text())["shard_id"]
@@ -837,7 +877,7 @@ def run_keyframes(
                 LOG.info("completed checkpoint verified; skipping Kaggle shard %s", shard_id)
                 continue
             LOG.warning("local checkpoint exists but R2 manifest is absent; reprocessing %s", shard_id)
-        recovered = recovered_keyframe_summary(pool, manifest_key, dataset, shard_id)
+        recovered = recovered_keyframe_summary(args, pool, manifest_key, dataset, shard_id)
         if recovered is not None:
             write_local_json(state_path, recovered)
             summaries.append(recovered)
@@ -862,7 +902,7 @@ def run_keyframes(
             )
         archive = download_kaggle_dataset(dataset, stage_dir, args.max_temp_bytes)
         records, videos = upload_keyframe_archive(
-            archive, dataset, shard_id, pool, args.keyframe_workers
+            args, archive, dataset, shard_id, pool, args.keyframe_workers
         )
         upload_manifest(pool, manifest_key, records)
         summary = {
@@ -897,29 +937,28 @@ def run_keyframes(
 
 
 def validate_sources(args: argparse.Namespace) -> dict:
-    video_urls = read_nonblank_lines(Path(args.video_urls))
-    keyframe_urls = read_nonblank_lines(Path(args.keyframe_urls))
-    shard_ids = [shard_from_dataset(url.split("/datasets/", 1)[1].strip("/")) for url in keyframe_urls]
+    video_urls = configured_video_urls(args)
+    datasets = configured_keyframe_datasets(args)
+    shard_ids = [shard_from_dataset(dataset) for dataset in datasets]
     expected_order = [
         json.loads(path.read_text())["shard_id"]
         for path in sorted(MANIFEST_ROOT.glob("L*/part-*.json"))
     ]
     if len(video_urls) != 15 or len(set(video_urls)) != 15:
         raise RuntimeError("video URL list must contain 15 unique entries")
-    if len(keyframe_urls) != 28 or len(set(keyframe_urls)) != 28:
+    if len(datasets) != 28 or len(set(datasets)) != 28:
         raise RuntimeError("keyframe URL list must contain 28 unique entries")
     if shard_ids != expected_order:
         raise RuntimeError("keyframe URL order does not match the shard manifest")
     expected_videos = load_expected_videos()
     status_frames = 0
     for shard_id in shard_ids:
-        status = json.loads((DATA_DIR / "keyframe_import_status" / f"{shard_id}.done.json").read_text())
-        status_frames += int(status["frame_count"])
+        status_frames += int(keyframe_source_entry(args, shard_id)["frame_count"])
     if status_frames != 235_588:
         raise RuntimeError(f"status frame total mismatch: {status_frames:,}")
     return {
         "video_sources": len(video_urls),
-        "keyframe_sources": len(keyframe_urls),
+        "keyframe_sources": len(datasets),
         "expected_videos": len(expected_videos),
         "expected_keyframes": status_frames,
     }
@@ -929,8 +968,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--phase", choices=("all", "videos", "keyframes"), default="all")
     parser.add_argument("--prefix", default=os.environ.get("R2_PREFIX", "fred"))
-    parser.add_argument("--video-urls", default=str(DATA_DIR / "urls.txt"))
-    parser.add_argument("--keyframe-urls", default=str(DATA_DIR / "urls_keyframes_kaggle.txt"))
+    parser.add_argument("--source-manifest", default=str(DEFAULT_SOURCE_MANIFEST))
+    parser.add_argument("--video-urls", help="optional newline-delimited override for video source URLs")
+    parser.add_argument("--keyframe-urls", help="optional newline-delimited override for Kaggle dataset URLs")
     parser.add_argument("--stage-dir", type=Path, default=DEFAULT_STAGE_DIR)
     parser.add_argument("--state-dir", type=Path, default=DEFAULT_STATE_DIR)
     parser.add_argument("--max-temp-gb", type=float, default=30.0)

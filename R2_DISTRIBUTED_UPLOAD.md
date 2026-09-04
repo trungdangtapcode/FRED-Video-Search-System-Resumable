@@ -1,8 +1,9 @@
 # Distributed R2 media upload
 
-This guide is for helpers uploading assigned source-video archives. Each helper
-must be assigned a different archive. The uploader converts the archive into
-the repository layout while keeping at most one ZIP on local disk.
+This guide is for helpers uploading assigned source-video archives or keyframe
+shards. Each helper must be assigned a different unit. The uploader converts
+the archive into the repository layout while keeping at most one ZIP on local
+disk.
 
 ## Destination format
 
@@ -135,6 +136,52 @@ for archive in Videos_L26_c.zip Videos_L26_d.zip; do
     --prefix fred \
     --max-temp-gb 30 \
     2>&1 | tee "$archive.upload.log" || break
+done
+```
+
+## Upload one assigned keyframe shard
+
+Keyframe workers also need their own Kaggle token:
+
+```bash
+export KAGGLE_API_TOKEN="..."
+```
+
+Replace `L30_p01` with the exact shard assigned by the coordinator:
+
+```bash
+.venv-r2/bin/python utils/upload_media_to_r2.py \
+  --phase keyframes \
+  --only-shard L30_p01 \
+  --prefix fred \
+  --max-temp-gb 30 \
+  --keyframe-workers 8 \
+  2>&1 | tee L30_p01.upload.log
+```
+
+This downloads one Kaggle dataset ZIP, validates its expected video and frame
+counts, and uploads individual objects such as:
+
+```text
+fred/data/extracted_keyframes/L30_V001/00000.png
+```
+
+It writes the completion manifest `fred/manifests/keyframes/L30_p01.jsonl` and
+deletes the ZIP only after every PNG has been verified. If interrupted, rerun
+the exact same command. Do not upload Kaggle ZIPs directly into R2.
+
+To process multiple assigned shards, run them sequentially. Using reverse order
+helps avoid overlap with a coordinator working from `L21_p01` upward:
+
+```bash
+for shard in L30_p01 L29_p02 L29_p01; do
+  .venv-r2/bin/python utils/upload_media_to_r2.py \
+    --phase keyframes \
+    --only-shard "$shard" \
+    --prefix fred \
+    --max-temp-gb 30 \
+    --keyframe-workers 8 \
+    2>&1 | tee "$shard.upload.log" || break
 done
 ```
 
