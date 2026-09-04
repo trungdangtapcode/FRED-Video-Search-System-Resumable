@@ -11,7 +11,7 @@ if [[ ! -f "$index_path" ]]; then
   exit 1
 fi
 
-for port in 50239 50313 8069 13022 5174; do
+for port in 50239 50313 13022 5174; do
   if ss -H -ltn "sport = :$port" | grep -q .; then
     echo "Port $port is already in use; refusing to start a conflicting service."
     exit 1
@@ -34,10 +34,6 @@ PYTHONUNBUFFERED=1 .venv-services/bin/python embedding/retriever_server.py \
   >"$runtime_dir/retriever.log" 2>&1 &
 pids+=("$!")
 
-PYTHONUNBUFFERED=1 .venv-services/bin/python -m static_server.run \
-  >"$runtime_dir/static.log" 2>&1 &
-pids+=("$!")
-
 PYTHONUNBUFFERED=1 .venv-services/bin/python submit_server/run.py \
   >"$runtime_dir/submit.log" 2>&1 &
 pids+=("$!")
@@ -49,7 +45,7 @@ pids+=("$!")
 
 (
   cd interface
-  npm run dev -- --host 127.0.0.1 --port 5174
+  npm run dev -- --host "${UI_HOST:-0.0.0.0}" --port 5174
 ) >"$runtime_dir/frontend.log" 2>&1 &
 pids+=("$!")
 
@@ -57,10 +53,10 @@ echo "Local embedding search is starting:"
 echo "  UI:        http://localhost:5174"
 echo "  API:       http://localhost:50313"
 echo "  Retriever: http://localhost:50239"
-echo "  Static:    http://localhost:8069"
 echo "  Submit:    http://localhost:13022"
+echo "  Media:     ${VITE_MEDIA_BASE_URL:-configured in .env}"
 echo "Logs: $runtime_dir"
-echo "Press Ctrl+C to stop all five services."
+echo "Press Ctrl+C to stop all four services."
 
 if ! wait -n "${pids[@]}"; then
   echo "A FRED service exited unexpectedly; stopping the remaining services."
