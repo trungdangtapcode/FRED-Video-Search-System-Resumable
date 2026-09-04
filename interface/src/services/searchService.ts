@@ -1,5 +1,6 @@
 import type { SearchRequest, SearchResponse, UnifiedSearchRequest } from '@/types';
-import { API_ENDPOINTS, ROOT_DIR } from '@/constants';
+import { API_ENDPOINTS } from '@/constants';
+import { getMediaUrl } from '@/utils/mediaPath';
 
 export class SearchService {
   static async searchByText(request: SearchRequest): Promise<SearchResponse> {
@@ -83,8 +84,7 @@ export class SearchService {
   }
 
   static getImageUrl(framePath: string): string {
-    const relativePath = framePath.replace(ROOT_DIR, '').replace(/^\/+/, '');
-    return `${API_ENDPOINTS.STATIC_SERVER}/${relativePath}`;
+    return getMediaUrl(framePath);
   }
 
   static formatTimestamp(seconds: number): string {

@@ -1,7 +1,9 @@
+const mediaBaseUrl = (import.meta.env.VITE_MEDIA_BASE_URL || '/media').replace(/\/+$/, '');
+
 // API endpoints
 export const API_ENDPOINTS = {
   SEARCH: '/api/retrieve',
-  STATIC_SERVER: '/media',
+  STATIC_SERVER: mediaBaseUrl,
   SUBMIT_SERVER: '/submit-api',
   TRANSLATE_BASE_URL: 'http://localhost:13023',
   SEARCH_BASE_URL: '/api'
@@ -37,6 +39,3 @@ export const SEARCH_TYPES = {
     disabled: true,
   },
 } as const;
-
-
-export const ROOT_DIR = "/home/nguyentnt/a/FRED-Video-Search-System-Resumable/data"

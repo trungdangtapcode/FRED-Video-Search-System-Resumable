@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { submissionService } from '@/services/submissionService';
 import type { QuestionSubmission } from '@/services/submissionService';
 import { openVideoPlayer } from '@/utils/videoUtils';
-import { API_ENDPOINTS, ROOT_DIR, DIRECTLY_DEFAULT } from '@/constants';
+import { API_ENDPOINTS, DIRECTLY_DEFAULT } from '@/constants';
+import { toDataRelativePath } from '@/utils/mediaPath';
 import { Film, Clock, Hash } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
@@ -28,8 +29,7 @@ const FrameImage: React.FC<{
         setIsLoading(true);
         setError(null);
 
-        // Remove ROOT_DIR from video path before sending to backend
-        const relativePath = frame.video_path.replace(ROOT_DIR, '');
+        const relativePath = toDataRelativePath(frame.video_path);
         // alert('Relative path: ' + frame.video_path);
         
         // Use backend extract_frame endpoint instead of client-side extraction
