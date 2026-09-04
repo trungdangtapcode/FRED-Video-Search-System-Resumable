@@ -11,18 +11,13 @@ npm run dev
 
 ## Before running on another machine
 
-Update the following machine-specific absolute paths after cloning the repository:
+Copy `.env.example` to `.env` and replace `PROJECT_ROOT` with the checkout path.
+`VITE_MEDIA_BASE_URL` points to the public R2 prefix containing
+`extracted_keyframes/` and `unzipped/video/`. Metadata paths are normalized at
+runtime, so no frontend source file contains a machine-specific data root.
 
-1. In `interface/src/constants/index.ts`, set `ROOT_DIR` to the new machine's
-   absolute `data/` directory.
-2. In `submit.py`, update `FPS_PATH` and the default `json_file_path` in
-   `process_json_file()` to point to the new machine's `data/fps_dict_v2.json`
-   and `submit_server/submissions.json` files.
-
-For example, if the repository is cloned to `/workspace/FRED-Video-Search-System-Resumable`,
-use `/workspace/FRED-Video-Search-System-Resumable/data` as the data root. Do not
-commit credentials or machine-specific secrets; provide those through environment
-variables.
+The current runtime is embedding-only: it loads the local FAISS index and does
+not start or require Elasticsearch. Start it with `./run_local.sh`.
 
 ### Files deliberately excluded from Git
 

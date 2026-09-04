@@ -13,7 +13,14 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
-from config import FPS_VIDEO_PATH, ROOT_DIR, STATEMENTS_FILE, SUBMISSIONS_FILE
+from config import (
+    FPS_VIDEO_PATH,
+    MEDIA_BASE_URL,
+    ROOT_DIR,
+    STATEMENTS_FILE,
+    SUBMISSIONS_FILE,
+    public_media_url,
+)
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -395,14 +402,18 @@ def extract_frame():
         
         full_video_path = resolve_video_path(relative_video_path)
         
-        # Check if video file exists
-        if not full_video_path.is_file():
+        if full_video_path.is_file():
+            video_source = str(full_video_path)
+        elif MEDIA_BASE_URL:
+            relative_path = full_video_path.relative_to(Path(ROOT_DIR).resolve()).as_posix()
+            video_source = public_media_url(relative_path)
+        else:
             return jsonify({'error': 'Video file not found'}), 404
 
         process = subprocess.run(
             [
                 "ffmpeg", "-loglevel", "error", "-ss", str(timestamp),
-                "-i", str(full_video_path), "-frames:v", "1",
+                "-i", video_source, "-frames:v", "1",
                 "-q:v", "3", "-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1",
             ],
             check=False,

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Play, Pause, Volume2, VolumeX, RotateCcw, Maximize } from 'lucide-react';
-import { API_ENDPOINTS, ROOT_DIR } from '@/constants';
+import { getMediaUrl } from '@/utils/mediaPath';
 import { SubmitFrameButton } from './SubmitFrameButton';
 import type { SearchResult } from '@/types';
 
@@ -28,12 +28,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [speedKeyTimer, setSpeedKeyTimer] = useState<NodeJS.Timeout | null>(null);
   const [isSpeedKeyPressed, setIsSpeedKeyPressed] = useState(false);
   const [currentSpeedKey, setCurrentSpeedKey] = useState<string | null>(null);
-
-  // Get video URL from static server
-  const getVideoUrl = (videoPath: string) => {
-    const relativePath = videoPath.replace(ROOT_DIR, '').replace(/^\/+/, '');
-    return `${API_ENDPOINTS.STATIC_SERVER}/${relativePath}`;
-  };
 
   // Format time display with milliseconds
   const formatTime = (timeInSeconds: number) => {
@@ -423,7 +417,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           preload="metadata"
           onClick={togglePlayPause}
         >
-          <source src={getVideoUrl(videoData.video_path)} type="video/mp4" />
+          <source src={getMediaUrl(videoData.video_path)} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         
